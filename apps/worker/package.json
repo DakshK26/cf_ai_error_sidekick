@@ -1,0 +1,15 @@
+{
+    "name": "@cf_ai/worker",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "wrangler dev",
+        "build": "wrangler deploy --dry-run",
+        "lint": "echo \"no lint yet\"",
+        "test": "echo \"no tests yet\""
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@cloudflare/workers-types": "^4.20241112.0"
+    }
+}
