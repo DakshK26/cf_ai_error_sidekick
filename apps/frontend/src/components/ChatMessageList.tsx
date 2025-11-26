@@ -3,18 +3,20 @@
 import { useEffect, useRef } from "react";
 import type { ChatMessageView } from "@/hooks/useChatSession";
 import { ChatMessageBubble } from "./ChatMessageBubble";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface ChatMessageListProps {
     messages: ChatMessageView[];
+    isTyping?: boolean;
 }
 
-export function ChatMessageList({ messages }: ChatMessageListProps) {
+export function ChatMessageList({ messages, isTyping }: ChatMessageListProps) {
     const bottomRef = useRef<HTMLDivElement>(null);
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, isTyping]);
 
     if (messages.length === 0) {
         return (
@@ -36,11 +38,14 @@ export function ChatMessageList({ messages }: ChatMessageListProps) {
                 </div>
             </div>
         );
-    } return (
+    }
+
+    return (
         <div className="flex-1 overflow-y-auto p-6">
             {messages.map((message) => (
                 <ChatMessageBubble key={message.id} message={message} />
             ))}
+            {isTyping && <TypingIndicator />}
             <div ref={bottomRef} />
         </div>
     );

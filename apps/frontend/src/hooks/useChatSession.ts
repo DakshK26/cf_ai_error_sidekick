@@ -14,6 +14,7 @@ export interface UseChatSessionResult {
     messages: ChatMessageView[];
     isConnecting: boolean;
     isConnected: boolean;
+    isTyping: boolean;
     error: string | null;
     sendMessage: (content: string) => void;
     resetSession: () => void;
@@ -39,6 +40,7 @@ export function useChatSession(): UseChatSessionResult {
     const [messages, setMessages] = useState<ChatMessageView[]>([]);
     const [isConnecting, setIsConnecting] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
+    const [isTyping, setIsTyping] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const wsRef = useRef<WebSocket | null>(null);
@@ -95,6 +97,7 @@ export function useChatSession(): UseChatSessionResult {
                 const data = JSON.parse(event.data);
 
                 if (data.type === "token") {
+                    setIsTyping(false); // Got first token, stop typing indicator
                     // Append token to the last assistant message, or create a new one
                     setMessages((prev) => {
                         const last = prev[prev.length - 1];
@@ -116,8 +119,9 @@ export function useChatSession(): UseChatSessionResult {
                         }
                     });
                 } else if (data.type === "done") {
-                    // Streaming complete, nothing to do
+                    setIsTyping(false); // Stream complete
                 } else if (data.type === "error") {
+                    setIsTyping(false);
                     setError(data.error || "Unknown error from agent");
                 } else if (data.type === "message" && data.message) {
                     // Legacy message format (if backend sends complete messages)
@@ -174,6 +178,7 @@ export function useChatSession(): UseChatSessionResult {
             content,
         };
         setMessages((prev) => [...prev, userMessage]);
+        setIsTyping(true); // Show typing indicator
 
         // Send to backend
         wsRef.current.send(content);
@@ -201,6 +206,7 @@ export function useChatSession(): UseChatSessionResult {
         messages,
         isConnecting,
         isConnected,
+        isTyping,
         error,
         sendMessage,
         resetSession,
