@@ -2,6 +2,7 @@ import type { Env } from "./types";
 import { createSSEStream, sseEvent } from "./sse";
 import { ChatMessage, ChatRequest } from "@cf_ai/shared";
 import { SessionRepository } from "./sessionRepository";
+import { parseLogsWithWasm } from "./logParser";
 
 /**
  * Root endpoint - basic health check
@@ -141,4 +142,45 @@ export async function handleGetSession(req: Request, env: Env): Promise<Response
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
+}
+
+/**
+ * Log analysis endpoint - parse logs using Rust WASM module
+ * Phase 4: Uses WASM log parser for fast, structured log analysis
+ */
+export async function handleLogAnalyze(req: Request, _env: Env): Promise<Response> {
+    if (req.method !== "POST") {
+        return new Response("Method not allowed", { status: 405 });
+    }
+
+    let body: { log?: string };
+    try {
+        body = await req.json();
+    } catch {
+        return new Response("Invalid JSON", { status: 400 });
+    }
+
+    if (!body.log || typeof body.log !== "string") {
+        return new Response("Missing 'log' field", { status: 400 });
+    }
+
+    try {
+        const parsed = await parseLogsWithWasm(body.log);
+
+        return new Response(JSON.stringify(parsed, null, 2), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+        });
+    } catch (error) {
+        return new Response(
+            JSON.stringify({
+                error: "Failed to parse log",
+                details: error instanceof Error ? error.message : String(error)
+            }),
+            {
+                status: 500,
+                headers: { "Content-Type": "application/json" }
+            }
+        );
+    }
 }

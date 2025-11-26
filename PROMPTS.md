@@ -1,6 +1,6 @@
 # PROMPTS
 
-This file tracks system prompts and AI-assisted coding prompts used during development.
+This file tracks system prompts and AI-assisted coding prompts used during development. The file was tracked with the help of Github Copilot with context provided by me.
 
 ## System prompts
 

@@ -7,4 +7,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-# wasm-bindgen will be added in the Rust phase
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+
+[profile.release]
+opt-level = "z"
+lto = true

@@ -14,64 +14,24 @@ export class ErrorAgent extends Agent<Env, AgentState> {
     async initialize(sessionId: string) {
         const now = new Date().toISOString();
 
-        await this.setState({
+        const state: AgentState = {
             sessionId,
             messages: [],
             createdAt: now,
             lastActiveAt: now,
-        });
-    }
-
-    // Called when a client WebSocket connects
-    async onConnect(client: WebSocket, sessionId: string) {
-        let state = await this.getState();
-
-        if (!state) {
-            await this.initialize(sessionId);
-            state = await this.getState();
-        }
-
-        // Send existing messages to client
-        for (const m of state!.messages) {
-            client.send(JSON.stringify({ type: "message", message: m }));
-        }
-    }
-
-    // Method to receive a chat message from the user
-    async onMessageFromClient(
-        client: WebSocket,
-        sessionId: string,
-        content: string
-    ) {
-        let state = await this.getState();
-        if (!state) {
-            await this.initialize(sessionId);
-            state = await this.getState();
-        }
-
-        const userMessage: ChatMessage = {
-            role: "user",
-            content,
-            timestamp: new Date().toISOString(),
         };
 
-        state!.messages.push(userMessage);
-        state!.lastActiveAt = new Date().toISOString();
+        await this.ctx.storage.put("state", state);
+        return state;
+    }
 
-        await this.setState(state!);
-        client.send(JSON.stringify({ type: "message", message: userMessage }));
+    async getAgentState(): Promise<AgentState | null> {
+        const state = await this.ctx.storage.get<AgentState>("state");
+        return state ?? null;
+    }
 
-        // Fake assistant reply (Phase 5 will replace with real LLM streaming)
-        const assistantMessage: ChatMessage = {
-            role: "assistant",
-            content: "Acknowledged: " + content,
-            timestamp: new Date().toISOString(),
-        };
-
-        state!.messages.push(assistantMessage);
-        await this.setState(state!);
-
-        client.send(JSON.stringify({ type: "message", message: assistantMessage }));
+    async setAgentState(state: AgentState) {
+        await this.ctx.storage.put("state", state);
     }
 
     // Handle incoming fetch requests (WebSocket upgrade and POST messages)
@@ -83,18 +43,16 @@ export class ErrorAgent extends Agent<Env, AgentState> {
             const pair = new WebSocketPair();
             const [client, server] = Object.values(pair);
 
-            this.ctx.acceptWebSocket(server);
-
             const sessionId = url.pathname.split("/")[3] || "unknown";
 
-            server.addEventListener("open", () => {
-                this.onConnect(server, sessionId);
-            });
+            // Initialize state if needed
+            let state = await this.getAgentState();
+            if (!state) {
+                state = await this.initialize(sessionId);
+            }
 
-            server.addEventListener("message", (evt) => {
-                const content = typeof evt.data === "string" ? evt.data : "";
-                this.onMessageFromClient(server, sessionId, content);
-            });
+            // Accept the WebSocket connection
+            this.ctx.acceptWebSocket(server);
 
             return new Response(null, {
                 status: 101,
@@ -105,19 +63,83 @@ export class ErrorAgent extends Agent<Env, AgentState> {
         // Handle POST messages
         if (url.pathname.endsWith("/message") && request.method === "POST") {
             const { content } = await request.json<{ content: string }>();
-            const state = await this.getState();
-            const sessionId = state?.sessionId || "unknown";
+            let state = await this.getAgentState();
 
-            // Create a fake client for backend-triggered messages
-            const fakeClient = {
-                send: () => { },
-            } as any;
+            if (!state) {
+                // Initialize with a default sessionId if not exists
+                state = await this.initialize("default-session");
+            }
 
-            await this.onMessageFromClient(fakeClient, sessionId, content);
+            const userMessage: ChatMessage = {
+                role: "user",
+                content,
+                timestamp: new Date().toISOString(),
+            };
 
-            return new Response("ok");
+            state.messages.push(userMessage);
+            state.lastActiveAt = new Date().toISOString();
+
+            await this.setAgentState(state);
+
+            // Fake assistant reply
+            const assistantMessage: ChatMessage = {
+                role: "assistant",
+                content: "Acknowledged: " + content,
+                timestamp: new Date().toISOString(),
+            };
+
+            state.messages.push(assistantMessage);
+            await this.setAgentState(state);
+
+            return new Response(JSON.stringify({ messages: state.messages }), {
+                headers: { "Content-Type": "application/json" }
+            });
         }
 
         return new Response("Not found", { status: 404 });
+    }
+
+    // Handle WebSocket messages
+    async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+        const content = typeof message === "string" ? message : new TextDecoder().decode(message);
+
+        let state = await this.getAgentState();
+        if (!state) {
+            state = await this.initialize("unknown");
+        }
+
+        const userMessage: ChatMessage = {
+            role: "user",
+            content,
+            timestamp: new Date().toISOString(),
+        };
+
+        state.messages.push(userMessage);
+        state.lastActiveAt = new Date().toISOString();
+
+        await this.setAgentState(state);
+        ws.send(JSON.stringify({ type: "message", message: userMessage }));
+
+        // Fake assistant reply (Phase 5 will replace with real LLM streaming)
+        const assistantMessage: ChatMessage = {
+            role: "assistant",
+            content: "Acknowledged: " + content,
+            timestamp: new Date().toISOString(),
+        };
+
+        state.messages.push(assistantMessage);
+        await this.setAgentState(state);
+
+        ws.send(JSON.stringify({ type: "message", message: assistantMessage }));
+    }
+
+    // Handle WebSocket close
+    async webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean) {
+        console.log("WebSocket closed:", code, reason, wasClean);
+    }
+
+    // Handle WebSocket error
+    async webSocketError(ws: WebSocket, error: unknown) {
+        console.error("WebSocket error:", error);
     }
 }

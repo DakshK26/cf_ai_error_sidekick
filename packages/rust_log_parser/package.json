@@ -1,0 +1,8 @@
+{
+    "name": "@cf_ai/rust_log_parser",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "build:wasm": "cargo build --release --target wasm32-unknown-unknown && wasm-bindgen --target web --no-typescript --out-dir ../../apps/worker/src/wasm ./target/wasm32-unknown-unknown/release/rust_log_parser.wasm"
+    }
+}
