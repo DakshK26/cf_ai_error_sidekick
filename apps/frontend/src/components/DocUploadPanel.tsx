@@ -55,37 +55,31 @@ export function DocUploadPanel() {
     };
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
             <div>
-                <h3 className="text-sm font-semibold text-slate-300 mb-1">
-                    📚 Document Upload
+                <h3 className="text-sm font-semibold text-slate-200 mb-2">
+                    Knowledge Base
                 </h3>
-                <p className="text-xs text-slate-500">
-                    Add reference docs or error patterns to improve AI responses
+                <p className="text-xs text-slate-500 leading-relaxed">
+                    Upload reference documentation to enhance context retrieval
                 </p>
-            </div>
-
-            <textarea
+            </div>      <textarea
                 value={docText}
                 onChange={(e) => setDocText(e.target.value)}
-                placeholder="Paste documentation, common errors, or reference notes..."
-                className="w-full bg-slate-900 text-slate-100 border border-slate-700 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Paste documentation or error patterns..."
+                className="w-full bg-slate-900/50 text-slate-100 border border-slate-700/50 rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-600"
                 rows={4}
-            />
-
-            <button
+            />      <button
                 onClick={handleUpload}
                 disabled={isUploading || !docText.trim()}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-colors"
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 shadow-lg shadow-blue-500/20"
             >
-                {isUploading ? "Uploading..." : "Upsert to Vector Index"}
-            </button>
-
-            {uploadStatus && (
+                {isUploading ? "Uploading..." : "Upload to Index"}
+            </button>            {uploadStatus && (
                 <div
                     className={`text-xs px-3 py-2 rounded ${uploadStatus.type === "success"
-                            ? "bg-green-900/50 text-green-300 border border-green-700"
-                            : "bg-red-900/50 text-red-300 border border-red-700"
+                        ? "bg-green-900/50 text-green-300 border border-green-700"
+                        : "bg-red-900/50 text-red-300 border border-red-700"
                         }`}
                 >
                     {uploadStatus.message}
