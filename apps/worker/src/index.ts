@@ -8,6 +8,7 @@ import {
     handleDocsUpload,
     handleGetSession,
     handleLogAnalyze,
+    handleAgentSession,
 } from "./handlers";
 import { ErrorAgent } from "./agents/ErrorAgent";
 
@@ -54,6 +55,7 @@ router.on("GET", "/", handleRoot);
 router.on("GET", "/health", handleHealth);
 router.on("GET", "/ai-test", handleAiTest);
 router.on("POST", "/api/chat", handleChat);
+router.on("POST", "/api/agent/session", handleAgentSession);
 router.on("POST", "/api/docs/upload", handleDocsUpload);
 router.on("POST", "/api/log/analyze", handleLogAnalyze);
 router.on("GET", /^\/api\/session\/.+/, handleGetSession);

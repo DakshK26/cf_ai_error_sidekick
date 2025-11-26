@@ -3,6 +3,7 @@ import { createSSEStream, sseEvent } from "./sse";
 import { ChatMessage, ChatRequest } from "@cf_ai/shared";
 import { SessionRepository } from "./sessionRepository";
 import { parseLogsWithWasm } from "./logParser";
+import { upsertDocuments } from "./vectorStore";
 
 /**
  * Root endpoint - basic health check
@@ -110,16 +111,36 @@ export async function handleChat(req: Request, env: Env): Promise<Response> {
 }
 
 /**
- * Document upload endpoint - placeholder for Phase 7
+ * Document upload endpoint - Phase 5: Upload documents to Vectorize for RAG
  */
-export async function handleDocsUpload(_req: Request, _env: Env): Promise<Response> {
-    // Placeholder; real ingestion comes in Phase 7
+export async function handleDocsUpload(req: Request, env: Env): Promise<Response> {
+    if (req.method !== "POST") {
+        return new Response("Method not allowed", { status: 405 });
+    }
+
+    let body: { docs?: { id?: string; text: string; source?: string }[] };
+    try {
+        body = await req.json();
+    } catch {
+        return new Response("Invalid JSON", { status: 400 });
+    }
+
+    const docs = body.docs ?? [];
+    if (!docs.length) {
+        return new Response("Missing 'docs' array", { status: 400 });
+    }
+
+    const normalized = docs.map(d => ({
+        id: d.id ?? crypto.randomUUID(),
+        text: d.text,
+        metadata: d.source ? { source: d.source } : {}
+    }));
+
+    await upsertDocuments(env, normalized);
+
     return new Response(
-        JSON.stringify({
-            status: "not_implemented",
-            message: "Docs upload coming in Phase 7.",
-        }),
-        { status: 501, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ upserted: normalized.map(d => d.id) }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
     );
 }
 
@@ -183,4 +204,25 @@ export async function handleLogAnalyze(req: Request, _env: Env): Promise<Respons
             }
         );
     }
+}
+
+/**
+ * Agent session endpoint - Create or get WebSocket session for Agent
+ * Phase 5: Returns sessionId and WebSocket URL for frontend
+ */
+export async function handleAgentSession(req: Request, _env: Env): Promise<Response> {
+    if (req.method !== "POST") {
+        return new Response("Method not allowed", { status: 405 });
+    }
+
+    const { sessionId } = await req.json<{ sessionId?: string }>().catch(() => ({ sessionId: undefined }));
+    const id = sessionId ?? crypto.randomUUID();
+
+    return new Response(
+        JSON.stringify({
+            sessionId: id,
+            websocketUrl: `/agent/connect/${id}`
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+    );
 }

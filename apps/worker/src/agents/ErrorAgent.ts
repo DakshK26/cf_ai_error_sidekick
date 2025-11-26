@@ -1,12 +1,17 @@
 import { Agent } from "agents";
 import type { Env } from "../types";
 import type { ChatMessage } from "@cf_ai/shared";
+import { parseLogsWithWasm } from "../logParser";
+import { querySimilar } from "../vectorStore";
+import { chatWithLlmStream } from "../ai";
+import { SessionRepository } from "../sessionRepository";
 
 interface AgentState {
     sessionId: string;
     messages: ChatMessage[];
     createdAt: string;
     lastActiveAt: string;
+    lastLogSummary?: string;
 }
 
 export class ErrorAgent extends Agent<Env, AgentState> {
@@ -99,7 +104,7 @@ export class ErrorAgent extends Agent<Env, AgentState> {
         return new Response("Not found", { status: 404 });
     }
 
-    // Handle WebSocket messages
+    // Handle WebSocket messages - Full AI pipeline with RAG + LLM streaming
     async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
         const content = typeof message === "string" ? message : new TextDecoder().decode(message);
 
@@ -108,6 +113,7 @@ export class ErrorAgent extends Agent<Env, AgentState> {
             state = await this.initialize("unknown");
         }
 
+        const repo = new SessionRepository(this.env);
         const userMessage: ChatMessage = {
             role: "user",
             content,
@@ -116,21 +122,91 @@ export class ErrorAgent extends Agent<Env, AgentState> {
 
         state.messages.push(userMessage);
         state.lastActiveAt = new Date().toISOString();
-
         await this.setAgentState(state);
-        ws.send(JSON.stringify({ type: "message", message: userMessage }));
+        await repo.saveMessage(state.sessionId, userMessage);
 
-        // Fake assistant reply (Phase 5 will replace with real LLM streaming)
-        const assistantMessage: ChatMessage = {
-            role: "assistant",
-            content: "Acknowledged: " + content,
-            timestamp: new Date().toISOString(),
-        };
+        // 1. Try to parse as log and create a short summary
+        let logSummary = "";
+        try {
+            const parsed = await parseLogsWithWasm(content);
+            if (parsed && parsed.entries && parsed.entries.length > 0) {
+                const first = parsed.entries[0];
+                logSummary = `Detected ${parsed.entries.length} log entries. First severity: ${first.severity}. Message: ${first.message}`;
+                state.lastLogSummary = logSummary;
+                await this.setAgentState(state);
+            }
+        } catch (e) {
+            // ignore parsing errors, just fall back to normal chat
+        }
 
-        state.messages.push(assistantMessage);
-        await this.setAgentState(state);
+        // 2. Retrieve context from Vectorize based on the message (or log summary)
+        const queryText = logSummary || content;
+        let contextChunks: string[] = [];
+        try {
+            const results = await querySimilar(this.env, queryText, 4);
+            contextChunks = results.map(
+                (r, idx) => `# Context ${idx + 1} (score=${r.score?.toFixed(3)}):\n${r.text}`
+            );
+        } catch (e) {
+            // no context available yet is fine
+        }
 
-        ws.send(JSON.stringify({ type: "message", message: assistantMessage }));
+        // 3. Fetch recent history from D1
+        const recent = await repo.getRecentMessages(state.sessionId, 10);
+
+        // 4. Build prompt
+        const systemPrompt = [
+            "You are an AI assistant that helps developers understand and debug errors and logs.",
+            "If log analysis is available, prioritize explaining the root cause and next steps.",
+            "Use the provided context snippets if they are relevant, but don't hallucinate details."
+        ].join("\n");
+
+        const contextSection =
+            contextChunks.length > 0
+                ? `\n\n=== Retrieved Context ===\n${contextChunks.join("\n\n")}\n\n=== End Context ===\n`
+                : "";
+
+        const historyMessages = recent
+            .map(m => ({ role: m.role, content: m.content as string }))
+            .filter(m => m.role === "user" || m.role === "assistant");
+
+        const messages = [
+            { role: "system" as const, content: systemPrompt + contextSection },
+            ...historyMessages,
+            { role: "user" as const, content }
+        ];
+
+        // 5. Stream LLM response tokens to client and buffer them
+        let assistantContent = "";
+
+        try {
+            await chatWithLlmStream(this.env, messages, token => {
+                assistantContent += token;
+                ws.send(
+                    JSON.stringify({
+                        type: "token",
+                        token
+                    })
+                );
+            });
+
+            const assistantMessage: ChatMessage = {
+                role: "assistant",
+                content: assistantContent,
+                timestamp: new Date().toISOString()
+            };
+
+            state.messages.push(assistantMessage);
+            await this.setAgentState(state);
+            await repo.saveMessage(state.sessionId, assistantMessage);
+
+            ws.send(JSON.stringify({ type: "done" }));
+        } catch (error) {
+            ws.send(JSON.stringify({
+                type: "error",
+                error: error instanceof Error ? error.message : "Unknown error"
+            }));
+        }
     }
 
     // Handle WebSocket close
