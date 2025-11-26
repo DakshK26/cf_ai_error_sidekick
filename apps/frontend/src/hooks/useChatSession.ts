@@ -20,6 +20,7 @@ export interface UseChatSessionResult {
 }
 
 const SESSION_STORAGE_KEY = "cf_ai_error_sidekick_session";
+const MESSAGES_STORAGE_KEY = "cf_ai_error_sidekick_messages";
 
 function generateUUID(): string {
     if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -43,17 +44,35 @@ export function useChatSession(): UseChatSessionResult {
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Initialize or restore session ID
+    // Initialize or restore session ID and messages
     useEffect(() => {
         const stored = localStorage.getItem(SESSION_STORAGE_KEY);
         if (stored) {
             setSessionId(stored);
+
+            // Restore messages for this session
+            const storedMessages = localStorage.getItem(MESSAGES_STORAGE_KEY);
+            if (storedMessages) {
+                try {
+                    const parsed = JSON.parse(storedMessages);
+                    setMessages(parsed);
+                } catch (err) {
+                    console.error("Failed to parse stored messages:", err);
+                }
+            }
         } else {
             const newId = generateUUID();
             localStorage.setItem(SESSION_STORAGE_KEY, newId);
             setSessionId(newId);
         }
     }, []);
+
+    // Persist messages to localStorage whenever they change
+    useEffect(() => {
+        if (messages.length > 0) {
+            localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages));
+        }
+    }, [messages]);
 
     // Establish WebSocket connection when sessionId changes
     useEffect(() => {
@@ -166,8 +185,9 @@ export function useChatSession(): UseChatSessionResult {
             wsRef.current.close();
         }
 
-        // Clear messages
+        // Clear messages from state and storage
         setMessages([]);
+        localStorage.removeItem(MESSAGES_STORAGE_KEY);
         setError(null);
 
         // Generate new session ID
