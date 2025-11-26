@@ -35,7 +35,7 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["ErrorAgent"]
+new_sqlite_classes = ["ErrorAgent"]
 
 # Vectorize
 [[vectorize]]
