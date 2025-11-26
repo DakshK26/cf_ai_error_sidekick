@@ -114,6 +114,10 @@ export class ErrorAgent extends Agent<Env, AgentState> {
         }
 
         const repo = new SessionRepository(this.env);
+
+        // Ensure the session exists in D1 before saving messages
+        await repo.ensureSession(state.sessionId);
+
         const userMessage: ChatMessage = {
             role: "user",
             content,
@@ -178,9 +182,11 @@ export class ErrorAgent extends Agent<Env, AgentState> {
 
         // 5. Stream LLM response tokens to client and buffer them
         let assistantContent = "";
+        let tokenCount = 0;
 
         try {
             await chatWithLlmStream(this.env, messages, token => {
+                tokenCount++;
                 assistantContent += token;
                 ws.send(
                     JSON.stringify({
@@ -189,6 +195,8 @@ export class ErrorAgent extends Agent<Env, AgentState> {
                     })
                 );
             });
+
+            console.log(`[ErrorAgent] Received ${tokenCount} tokens, total length: ${assistantContent.length}`);
 
             const assistantMessage: ChatMessage = {
                 role: "assistant",
@@ -202,6 +210,7 @@ export class ErrorAgent extends Agent<Env, AgentState> {
 
             ws.send(JSON.stringify({ type: "done" }));
         } catch (error) {
+            console.error("[ErrorAgent] Stream error:", error);
             ws.send(JSON.stringify({
                 type: "error",
                 error: error instanceof Error ? error.message : "Unknown error"

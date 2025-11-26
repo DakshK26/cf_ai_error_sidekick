@@ -8,8 +8,8 @@ let wasmInitialized: Promise<void> | null = null;
 
 async function ensureWasmInitialized(): Promise<void> {
     if (!wasmInitialized) {
-        // Pass the WASM module directly instead of a URL
-        wasmInitialized = init(wasmBinary);
+        // Pass the WASM module as an object to avoid deprecation warning
+        wasmInitialized = init({ module_or_path: wasmBinary });
     }
     await wasmInitialized;
 }

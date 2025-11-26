@@ -20,6 +20,7 @@ VECTORIZE_INDEX = "error-index"
 [[kv_namespaces]]
 binding = "KV_STORE"
 id = "6f62156ef42e48d3bd3d90ad47db1345"
+preview_id = "f8250ac1668942329cd5d78f7fe6eda2"
 
 # D1 database
 [[d1_databases]]
