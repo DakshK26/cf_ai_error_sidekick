@@ -1,0 +1,44 @@
+name = "cf_ai_error_sidekick"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+workers_dev = true
+
+# Workers AI
+[ai]
+binding = "AI"
+remote = true
+
+# Bindings
+[vars]
+EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5"
+LLM_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+VECTORIZE_INDEX = "error-index"
+
+# Key-value storage
+[[kv_namespaces]]
+binding = "KV_STORE"
+id = "6f62156ef42e48d3bd3d90ad47db1345"
+
+# D1 database
+[[d1_databases]]
+binding = "DB"
+database_name = "cf_ai_error_sidekick_db"
+database_id = "b26e6e5a-67e8-48f0-9a87-470d336e9eae"
+
+# Durable Objects – will add ErrorAgent in Phase 3.5
+[durable_objects]
+bindings = [] # Will be filled when Agent is added
+
+# Vectorize
+[[vectorize]]
+binding = "VECTOR_DB"
+index_name = "error-index"
+remote = true
+
+# Workflows – will be added in Phase 7 when DocIngestWorkflow class is implemented
+# [[workflows]]
+# name = "doc-ingest-workflow"
+# binding = "DOC_INGEST_WORKFLOW"
+# class_name = "DocIngestWorkflow"

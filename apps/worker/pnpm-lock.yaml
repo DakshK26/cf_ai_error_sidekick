@@ -1,0 +1,32 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20241112.0
+        version: 4.20251125.0
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+packages:
+
+  '@cloudflare/workers-types@4.20251125.0':
+    resolution: {integrity: sha512-YZdO/IX10DiHb2v+7H2CL5SKAbxJQIG22jNefgtW86YMf5LvQk6f75v5T/j1ju56MBwm6RzcqvsECF+cXs2h3g==}
+
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
+snapshots:
+
+  '@cloudflare/workers-types@4.20251125.0': {}
+
+  typescript@5.9.3: {}

@@ -30,4 +30,24 @@ Record of key prompts used to coordinate AI assistance during the build process.
 
 ---
 
+### Phase 1: Cloudflare Bindings Configuration
+
+**Prompt**: "Create a complete wrangler.toml configuration with bindings for KV, D1, Vectorize, Workers AI, and Workflows. Include TypeScript type definitions for all bindings and build a verification utility that checks binding availability at runtime."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-25
+- **Context**: After manually provisioning the Cloudflare services through the dashboard, I designed the binding architecture and had AI generate the type-safe configuration layer. I specified the exact model names and binding structure based on my infrastructure planning.
+
+---
+
+### Phase 2: Worker Routing and SSE Infrastructure
+
+**Prompt**: "Build a clean routing system for the Cloudflare Worker with pattern-based URL matching. Implement Server-Sent Events utilities for streaming responses. Create handler functions for /health, /api/chat with fake token streaming, and /api/docs/upload placeholder. Structure the code with separation of concerns - router, handlers, SSE utils, and types."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-25
+- **Context**: I architected the routing layer to prepare for Phase 3.5 Agent integration. The SSE implementation was designed to support real-time LLM streaming that will be added later. I structured the handlers to be easily replaceable when we wire in the actual Cloudflare Agent and RAG pipeline.
+
+---
+
 *More prompts will be added as development progresses through each phase.*

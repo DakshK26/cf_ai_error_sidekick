@@ -4,9 +4,14 @@
     "private": true,
     "scripts": {
         "dev": "wrangler dev",
+        "deploy": "wrangler deploy",
+        "typecheck": "tsc -p tsconfig.json",
         "build": "wrangler deploy --dry-run",
         "lint": "echo \"no lint yet\"",
         "test": "echo \"no tests yet\""
+    },
+    "dependencies": {
+        "@cf_ai/shared": "workspace:*"
     },
     "devDependencies": {
         "typescript": "^5.0.0",
