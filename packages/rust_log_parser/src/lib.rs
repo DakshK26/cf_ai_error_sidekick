@@ -25,7 +25,7 @@ pub fn parse_log(input: &str) -> String {
 }
 
 fn parse_log_internal(input: &str) -> Vec<LogEntry> {
-    let mut entries = Vec::new();
+    let mut entries: Vec<LogEntry> = Vec::new();
     let lines: Vec<&str> = input.lines().collect();
     
     // Regex patterns for common log formats
