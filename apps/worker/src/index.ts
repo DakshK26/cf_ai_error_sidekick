@@ -62,7 +62,49 @@ router.on("GET", /^\/api\/session\/.+/, handleGetSession);
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {
-        return router.route(request, env);
+        // WebSocket upgrades bypass normal CORS - handle directly
+        if (request.headers.get("upgrade") === "websocket") {
+            const url = new URL(request.url);
+
+            // Check if it's an agent connection
+            if (url.pathname.startsWith("/agent/connect/")) {
+                const sessionId = url.pathname.split("/")[3];
+
+                if (!sessionId) {
+                    return new Response("Missing session ID", { status: 400 });
+                }
+
+                const id = env.ERROR_AGENT.idFromName(sessionId);
+                const stub = env.ERROR_AGENT.get(id);
+
+                return stub.fetch(request);
+            }
+        }
+
+        // Handle CORS preflight
+        if (request.method === "OPTIONS") {
+            return new Response(null, {
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
+            });
+        }
+
+        const response = await router.route(request, env);
+
+        // Add CORS headers to all responses
+        const headers = new Headers(response.headers);
+        headers.set("Access-Control-Allow-Origin", "*");
+        headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        headers.set("Access-Control-Allow-Headers", "Content-Type");
+
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers,
+        });
     },
 };
 

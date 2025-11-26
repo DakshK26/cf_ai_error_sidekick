@@ -1,5 +1,4 @@
 # PROMPTS
-
 This file tracks system prompts and AI-assisted coding prompts used during development. The file was tracked with the help of Github Copilot with context provided by me.
 
 ## System prompts
@@ -57,6 +56,60 @@ Record of key prompts used to coordinate AI assistance during the build process.
 - **Tool**: GitHub Copilot
 - **Date**: 2025-11-25
 - **Context**: I designed the database schema to support multi-turn conversations with proper session tracking. The SessionRepository pattern was architected to be reusable by the Cloudflare Agent in Phase 3.5, providing a clean data access layer that abstracts D1 operations. I ensured the session creation logic handles both new and existing sessions gracefully.
+
+**Debug Prompt**: "The SessionRepository.saveMessage is failing with a foreign key constraint error. Add an ensureSession method that creates the session if it doesn't exist, and call it before saving messages in the ErrorAgent."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: Discovered during Phase 5 integration that D1 was throwing FOREIGN KEY constraint failures when messages were saved before their session existed. I designed the ensureSession pattern to gracefully handle session creation with INSERT OR IGNORE.
+
+---
+
+### Phase 3.5: Cloudflare Agents Integration
+
+**Prompt**: "Install the @cloudflare/agents SDK and create an ErrorAgent class extending the Agent base class. Implement WebSocket upgrade handling in the fetch method, webSocketMessage handler for incoming user messages, and initial state management using ctx.storage. Add a route /agent/connect/:sessionId and /api/agent/session endpoint that generates UUIDs and returns WebSocket connection URLs."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: After researching the Cloudflare Agents SDK documentation, I architected the agent system to use Durable Objects for persistent WebSocket connections. I designed the WebSocket message flow to eventually integrate with the RAG pipeline and LLM streaming. The state management pattern was chosen to support both in-memory (Durable Object storage) and persistent (D1) conversation history.
+
+---
+
+### Phase 4: Rust WASM Log Parser
+
+**Prompt**: "Create a Rust library crate that compiles to WASM using wasm-bindgen. Implement a parse_log function that takes a log string, uses regex to extract timestamp/severity/message fields, and returns a structured ParsedLog JSON. Set up the Cargo.toml with wasm32-unknown-unknown target and wasm-bindgen dependency. Generate TypeScript bindings and integrate the WASM module into the Worker with proper initialization."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: I designed the log parsing architecture to leverage Rust's performance for regex-heavy operations at the edge. The WASM module was structured as a reusable library that can be extended with more complex parsing logic. I ensured the TypeScript integration used a singleton initialization pattern to avoid re-compiling the WASM module on every request, which is critical for Worker performance.
+
+**Debug Prompt**: "Getting deprecation warning 'Passing an object to `wasm_bindgen::init` is deprecated'. Update the init call in logParser.ts to use the new {module_or_path: wasmBinary} format."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: After deployment, wrangler showed a deprecation warning for the WASM initialization pattern. I updated the code to match the new wasm-bindgen API while maintaining the singleton pattern.
+
+---
+
+### Phase 5: Full AI Pipeline with RAG
+
+**Prompt**: "Create ai.ts with embedText (handling multiple Workers AI response formats) and chatWithLlmStream (using ReadableStream with SSE parsing). Build vectorStore.ts with upsertDocuments and querySimilar functions. Update ErrorAgent to integrate the full pipeline: parse logs with WASM, retrieve context from Vectorize using embeddings, construct prompt with system message and RAG context, stream LLM tokens over WebSocket, and persist conversation to D1. Handle the Workers AI streaming response format that returns SSE data chunks."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: I architected the complete RAG pipeline after analyzing Workers AI's streaming response format and Vectorize API patterns. The design separates concerns: ai.ts for Workers AI interactions, vectorStore.ts for Vectorize operations, and ErrorAgent as the orchestration layer. I debugged the SSE parsing after discovering Workers AI returns streaming responses in Server-Sent Events format rather than simple JSON chunks. The integration ensures RAG context is retrieved before LLM generation, and all messages are persisted with proper session management including ensureSession to prevent foreign key violations.
+
+**Debug Prompt**: "embedText is throwing 'undefined is not iterable' errors. The Workers AI bge-base-en-v1.5 model returns different response formats - sometimes array of arrays, sometimes objects with 'values' or 'embedding' properties. Update embedText to handle all these formats."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: Discovered that Workers AI embedding responses vary by model version. I added format detection logic to handle both legacy and new response structures, ensuring backward compatibility.
+
+**Debug Prompt**: "WebSocket connects successfully and sends [Done] event, but fullResponse.length is 0 - no tokens are being streamed. The LLM is returning 0 tokens according to wrangler tail logs. Workers AI streaming returns ReadableStream with SSE format 'data: {\"response\":\"token\"}\n\n'. Update chatWithLlmStream to use getReader(), parse SSE lines, extract the 'response' field from JSON, and handle the [DONE] marker."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: After testing the deployed Worker, I discovered Workers AI uses Server-Sent Events format for streaming rather than simple JSON chunks. I designed a buffered line-by-line parser that handles incomplete chunks and extracts clean tokens from the SSE data field, which finally enabled real-time streaming to work correctly.
 
 ---
 
