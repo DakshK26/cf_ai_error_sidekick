@@ -25,42 +25,42 @@ This project demonstrates modern edge-native architecture by building an intelli
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Next.js Frontend                         │
-│                    (Vercel Edge Deployment)                      │
-│  • WebSocket client for real-time streaming                     │
-│  • REST API for document uploads                                │
-│  • Mobile-responsive UI with Tailwind CSS                       │
-└────────────────┬────────────────────────────────────────────────┘
-                 │
-                 │ WebSocket / HTTPS
-                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Cloudflare Worker (Hono Router)               │
-│                                                                   │
-│  ┌────────────────┐  ┌──────────────┐  ┌──────────────────┐    │
-│  │  ErrorAgent    │  │  Rust WASM   │  │  Vector Store    │    │
-│  │ (Durable Obj)  │  │ Log Parser   │  │  (Vectorize)     │    │
-│  │                │  │              │  │                  │    │
-│  │ • WebSocket    │  │ • Regex      │  │ • Embeddings     │    │
-│  │ • Streaming    │  │ • Structured │  │ • Similarity     │    │
-│  │ • State Mgmt   │  │   Output     │  │   Search         │    │
-│  └────────┬───────┘  └──────────────┘  └──────────────────┘    │
-│           │                                                       │
-│           ▼                                                       │
-│  ┌─────────────────────────────────────────────────────┐        │
-│  │              Workers AI (Llama 3.3 70B)              │        │
-│  │         • Token-by-token streaming                   │        │
-│  │         • RAG-augmented prompts                      │        │
-│  └─────────────────────────────────────────────────────┘        │
-│           │                                                       │
-│           ▼                                                       │
-│  ┌─────────────────────────────────────────────────────┐        │
-│  │           D1 Database (Session Persistence)          │        │
-│  │         • Sessions table                             │        │
-│  │         • Messages table (conversation history)      │        │
-│  └─────────────────────────────────────────────────────┘        │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                      Next.js Frontend                        │
+│                  (Vercel Edge Deployment)                    │
+│  • WebSocket client for real-time streaming                  │
+│  • REST API for document uploads                             │
+│  • Mobile-responsive UI with Tailwind CSS                    │
+└──────────────────┬───────────────────────────────────────────┘
+                   │
+                   │ WebSocket / HTTPS
+                   ▼
+┌──────────────────────────────────────────────────────────────┐
+│                 Cloudflare Worker (Hono Router)              │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
+│  │ ErrorAgent   │  │  Rust WASM   │  │ Vector Store │        │
+│  │(Durable Obj) │  │  Log Parser  │  │ (Vectorize)  │        │
+│  │              │  │              │  │              │        │
+│  │ • WebSocket  │  │ • Regex      │  │ • Embeddings │        │
+│  │ • Streaming  │  │ • Structured │  │ • Similarity │        │
+│  │ • State Mgmt │  │   Output     │  │   Search     │        │
+│  └──────┬───────┘  └──────────────┘  └──────────────┘        │
+│         │                                                    │
+│         ▼                                                    │
+│  ┌───────────────────────────────────────────────┐           │
+│  │         Workers AI (Llama 3.3 70B)            │           │
+│  │       • Token-by-token streaming              │           │
+│  │       • RAG-augmented prompts                 │           │
+│  └───────────────────┬───────────────────────────┘           │
+│                      │                                       │
+│                      ▼                                       │
+│  ┌───────────────────────────────────────────────┐           │
+│  │      D1 Database (Session Persistence)        │           │
+│  │       • Sessions table                        │           │
+│  │       • Messages table (conversation history) │           │
+│  └───────────────────────────────────────────────┘           │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
