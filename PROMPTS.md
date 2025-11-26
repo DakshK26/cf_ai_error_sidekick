@@ -50,4 +50,14 @@ Record of key prompts used to coordinate AI assistance during the build process.
 
 ---
 
+### Phase 3: D1 Session and Message Persistence
+
+**Prompt**: "Create a D1 schema with sessions and messages tables including foreign keys and indexes. Build a SessionRepository class that handles session creation, last-active updates, message persistence, and retrieval with proper chronological ordering. Update the chat handler to parse ChatRequest bodies, persist user and assistant messages to D1, and return sessionId in the SSE stream."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-25
+- **Context**: I designed the database schema to support multi-turn conversations with proper session tracking. The SessionRepository pattern was architected to be reusable by the Cloudflare Agent in Phase 3.5, providing a clean data access layer that abstracts D1 operations. I ensured the session creation logic handles both new and existing sessions gracefully.
+
+---
+
 *More prompts will be added as development progresses through each phase.*

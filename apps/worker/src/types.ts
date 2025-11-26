@@ -1,4 +1,4 @@
-import type { VectorizeIndex, D1Database, Ai } from "@cloudflare/workers-types";
+import type { VectorizeIndex, D1Database, Ai, DurableObjectNamespace } from "@cloudflare/workers-types";
 
 export interface Env {
     // Workers AI
@@ -12,6 +12,9 @@ export interface Env {
 
     // Vectorize index
     VECTOR_DB: VectorizeIndex;
+
+    // Durable Objects - ErrorAgent
+    ERROR_AGENT: DurableObjectNamespace;
 
     // Environment variables
     EMBEDDING_MODEL: string;

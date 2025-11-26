@@ -1,5 +1,7 @@
 import type { Env } from "./types";
 import { createSSEStream, sseEvent } from "./sse";
+import { ChatMessage, ChatRequest } from "@cf_ai/shared";
+import { SessionRepository } from "./sessionRepository";
 
 /**
  * Root endpoint - basic health check
@@ -37,34 +39,72 @@ export async function handleAiTest(_req: Request, env: Env): Promise<Response> {
 
 /**
  * Chat endpoint - streaming SSE response
- * Phase 2: Fake streaming tokens
+ * Phase 3: Uses D1 to persist messages
  * Phase 3.5+: Real Agent + RAG + LLM integration
  */
-export async function handleChat(req: Request, _env: Env): Promise<Response> {
+export async function handleChat(req: Request, env: Env): Promise<Response> {
     if (req.method !== "POST") {
         return new Response("Method not allowed", { status: 405 });
     }
 
-    // Later: parse JSON body into ChatMessage[], sessionId, etc.
-    // For now, just stream a fake response
+    let body: ChatRequest;
+    try {
+        body = await req.json<ChatRequest>();
+    } catch {
+        return new Response("Invalid JSON body", { status: 400 });
+    }
 
+    if (!body.message || typeof body.message !== "string") {
+        return new Response("Missing 'message' field", { status: 400 });
+    }
+
+    const repo = new SessionRepository(env);
+    const session = await repo.ensureSession(body.sessionId);
+
+    const userMessage: ChatMessage = {
+        role: "user",
+        content: body.message,
+        timestamp: new Date().toISOString(),
+    };
+
+    await repo.saveMessage(session.id, userMessage);
+
+    // For now, we stream fake tokens but still persist as if an assistant replied
     return createSSEStream((controller) => {
-        // Fake streaming tokens
-        const tokens = ["Hello", ",", " this", " is", " a", " test", " stream", "."];
+        const encoder = new TextEncoder();
+
+        // Send sessionId first so client can store it if it was newly created
+        controller.enqueue(
+            encoder.encode(sseEvent(JSON.stringify({ type: "session", sessionId: session.id })))
+        );
+
+        const tokens = ["This", " is", " a", " placeholder", " response", " for", " now."];
+        let buffer = "";
         let i = 0;
 
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             if (i >= tokens.length) {
-                const encoder = new TextEncoder();
-                controller.enqueue(encoder.encode(sseEvent("[DONE]")));
                 clearInterval(interval);
+
+                const assistantMessage: ChatMessage = {
+                    role: "assistant",
+                    content: buffer,
+                    timestamp: new Date().toISOString(),
+                };
+
+                await repo.saveMessage(session.id, assistantMessage);
+
+                controller.enqueue(encoder.encode(sseEvent(JSON.stringify({ type: "done" }))));
                 controller.close();
             } else {
-                const encoder = new TextEncoder();
-                controller.enqueue(encoder.encode(sseEvent(tokens[i])));
+                const token = tokens[i];
+                buffer += token;
+                controller.enqueue(
+                    encoder.encode(sseEvent(JSON.stringify({ type: "token", value: token })))
+                );
                 i++;
             }
-        }, 150);
+        }, 120);
     });
 }
 
@@ -80,4 +120,25 @@ export async function handleDocsUpload(_req: Request, _env: Env): Promise<Respon
         }),
         { status: 501, headers: { "Content-Type": "application/json" } }
     );
+}
+
+/**
+ * Get session endpoint - retrieve session messages for debugging
+ */
+export async function handleGetSession(req: Request, env: Env): Promise<Response> {
+    const url = new URL(req.url);
+    const parts = url.pathname.split("/"); // ["", "api", "session", ":id"]
+    const sessionId = parts[3];
+
+    if (!sessionId) {
+        return new Response("Missing session ID", { status: 400 });
+    }
+
+    const repo = new SessionRepository(env);
+    const recent = await repo.getRecentMessages(sessionId);
+
+    return new Response(JSON.stringify({ sessionId, messages: recent }, null, 2), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+    });
 }

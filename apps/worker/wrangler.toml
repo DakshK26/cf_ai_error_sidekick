@@ -27,9 +27,15 @@ binding = "DB"
 database_name = "cf_ai_error_sidekick_db"
 database_id = "b26e6e5a-67e8-48f0-9a87-470d336e9eae"
 
-# Durable Objects – will add ErrorAgent in Phase 3.5
+# Durable Objects - ErrorAgent for session orchestration
 [durable_objects]
-bindings = [] # Will be filled when Agent is added
+bindings = [
+  { name = "ERROR_AGENT", class_name = "ErrorAgent" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ErrorAgent"]
 
 # Vectorize
 [[vectorize]]

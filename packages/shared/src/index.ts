@@ -11,3 +11,8 @@ export interface SessionMeta {
     createdAt: string;
     lastActiveAt: string;
 }
+
+export interface ChatRequest {
+    sessionId?: string;
+    message: string;
+}

@@ -11,10 +11,11 @@
         "test": "echo \"no tests yet\""
     },
     "dependencies": {
-        "@cf_ai/shared": "workspace:*"
+        "@cf_ai/shared": "workspace:*",
+        "agents": "^0.2.23"
     },
     "devDependencies": {
-        "typescript": "^5.0.0",
-        "@cloudflare/workers-types": "^4.20241112.0"
+        "@cloudflare/workers-types": "^4.20241112.0",
+        "typescript": "^5.0.0"
     }
 }
