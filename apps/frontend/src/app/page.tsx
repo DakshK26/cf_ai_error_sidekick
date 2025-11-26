@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useChatSession } from "@/hooks/useChatSession";
 import { ChatMessageList } from "@/components/ChatMessageList";
 import { ChatInput } from "@/components/ChatInput";
 import { DocUploadPanel } from "@/components/DocUploadPanel";
 
 export default function HomePage() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const {
         sessionId,
         messages,
@@ -19,24 +21,47 @@ export default function HomePage() {
 
     return (
         <main className="h-screen bg-slate-950 text-slate-50 flex overflow-hidden">
+            {/* Mobile overlay */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-80 border-r border-slate-800/50 p-6 flex flex-col gap-6 overflow-y-auto bg-gradient-to-b from-slate-900 to-slate-950">
+            <aside className={`
+                w-80 border-r border-slate-800/50 p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 overflow-y-auto bg-gradient-to-b from-slate-900 to-slate-950
+                fixed lg:relative inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            `}>
                 {/* Logo and title */}
-                <div className="pb-6">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                <div className="pb-4 sm:pb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 className="text-lg font-bold text-slate-100 tracking-tight">
+                                    Error Sidekick
+                                </h1>
+                                <p className="text-xs text-slate-500 font-medium">
+                                    Cloudflare Edge
+                                </p>
+                            </div>
+                        </div>
+                        {/* Close button for mobile */}
+                        <button
+                            onClick={() => setIsSidebarOpen(false)}
+                            className="lg:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                        >
+                            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-slate-100 tracking-tight">
-                                Error Sidekick
-                            </h1>
-                            <p className="text-xs text-slate-500 font-medium">
-                                Cloudflare Edge
-                            </p>
-                        </div>
+                        </button>
                     </div>
                     <p className="text-sm text-slate-400 leading-relaxed">
                         AI-powered log analysis with intelligent context retrieval
@@ -84,28 +109,39 @@ export default function HomePage() {
             </aside>
 
             {/* Chat area */}
-            <section className="flex-1 flex flex-col h-full">
+            <section className="flex-1 flex flex-col h-full w-full lg:w-auto">
                 {/* Header with connection status */}
-                <header className="border-b border-slate-800/50 px-6 py-4 bg-slate-900/50 backdrop-blur-sm flex-shrink-0">
+                <header className="border-b border-slate-800/50 px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/50 backdrop-blur-sm flex-shrink-0">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-200 tracking-wide">Conversation</h2>
                         <div className="flex items-center gap-3">
+                            {/* Hamburger menu for mobile */}
+                            <button
+                                onClick={() => setIsSidebarOpen(true)}
+                                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            </button>
+                            <h2 className="text-sm font-semibold text-slate-200 tracking-wide">Conversation</h2>
+                        </div>
+                        <div className="flex items-center gap-2 sm:gap-3">
                             {isConnecting && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 sm:gap-2">
                                     <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
-                                    <span className="text-xs text-slate-400 font-medium">Connecting</span>
+                                    <span className="text-xs text-slate-400 font-medium hidden sm:inline">Connecting</span>
                                 </div>
                             )}
                             {isConnected && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 sm:gap-2">
                                     <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                                    <span className="text-xs text-slate-400 font-medium">Connected</span>
+                                    <span className="text-xs text-slate-400 font-medium hidden sm:inline">Connected</span>
                                 </div>
                             )}
                             {error && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 sm:gap-2">
                                     <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                                    <span className="text-xs text-red-400 font-medium">Error: {error}</span>
+                                    <span className="text-xs text-red-400 font-medium hidden sm:inline">Error: {error}</span>
                                 </div>
                             )}
                         </div>

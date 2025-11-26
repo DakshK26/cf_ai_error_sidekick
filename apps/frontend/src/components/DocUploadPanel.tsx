@@ -67,7 +67,7 @@ export function DocUploadPanel() {
                 value={docText}
                 onChange={(e) => setDocText(e.target.value)}
                 placeholder="Paste documentation or error patterns..."
-                className="w-full bg-slate-900/50 text-slate-100 border border-slate-700/50 rounded-lg px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-600"
+                className="w-full bg-slate-900/50 text-slate-100 border border-slate-700/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-600 touch-manipulation"
                 rows={4}
             />      <button
                 onClick={handleUpload}
