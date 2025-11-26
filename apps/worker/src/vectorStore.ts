@@ -24,8 +24,14 @@ export async function upsertDocuments(
         }
     }));
 
-    // Upsert to Vectorize
-    await env.VECTOR_DB.upsert(points);
+    // Upsert to Vectorize - note: returns info about inserted/updated vectors
+    try {
+        const result = await env.VECTOR_DB.upsert(points);
+        return result;
+    } catch (error) {
+        console.error("Vectorize upsert error:", error);
+        throw error;
+    }
 }
 
 /**
@@ -46,6 +52,7 @@ export async function querySimilar(
     // Query Vectorize for similar vectors
     const results = await env.VECTOR_DB.query(embedding, {
         topK: limit,
+        returnValues: false,
         returnMetadata: true
     });
 
