@@ -21,8 +21,8 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4 px-2 group`}>
             <div
                 className={`max-w-2xl px-5 py-3.5 rounded-xl relative ${isUser
-                        ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20"
-                        : "bg-slate-800/50 text-slate-100 border border-slate-700/50 backdrop-blur-sm"
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20"
+                    : "bg-slate-800/50 text-slate-100 border border-slate-700/50 backdrop-blur-sm"
                     }`}
             >
                 <div className={`text-[10px] font-semibold mb-2 tracking-wide uppercase ${isUser ? "text-blue-100" : "text-slate-400"
@@ -30,7 +30,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                     {isUser ? "You" : "Assistant"}
                 </div>
                 <div className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</div>
-                
+
                 {/* Copy button for assistant messages */}
                 {!isUser && (
                     <button
