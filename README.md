@@ -18,7 +18,7 @@ This project demonstrates modern edge-native architecture by building an intelli
 - **Persists conversations** across sessions using Cloudflare D1 (SQLite at the edge)
 - **Delivers a responsive UI** built with Next.js and deployed on Vercel
 
-**Key Achievement**: Zero cold-start traditional servers—everything runs on serverless edge infrastructure with global low-latency.
+**Key Achievement**: Zero cold-start traditional servers: everything runs on serverless edge infrastructure with global low-latency.
 
 ---
 
