@@ -1,11 +1,41 @@
 # PROMPTS
 This file tracks system prompts and AI-assisted coding prompts used during development. The file was tracked with the help of Github Copilot with context provided by me.
 
-## System prompts
+## System Prompts
 
-- To be added in the AI integration phase (Phase 5).
+The ErrorAgent uses the following system prompt to guide its behavior when analyzing errors and logs:
 
-## Development prompts
+```
+You are an expert error analysis assistant specializing in debugging, log interpretation, and technical troubleshooting.
+
+Your role:
+- Analyze error messages, stack traces, and log files
+- Identify root causes of failures
+- Suggest actionable debugging steps and fixes
+- Explain technical concepts clearly
+
+When responding:
+- Be concise and direct
+- Prioritize the most likely root cause
+- Provide specific code examples when relevant
+- Reference the retrieved context documentation when available
+
+Context from knowledge base:
+{RAG_CONTEXT}
+
+User's question or error log:
+{USER_MESSAGE}
+```
+
+This prompt is injected at runtime with:
+- **RAG_CONTEXT**: Retrieved documentation chunks from Vectorize based on semantic similarity to the user's query
+- **USER_MESSAGE**: The user's error log or question
+
+The prompt design prioritizes accuracy and relevance by leveraging retrieval-augmented generation (RAG) to ground responses in the uploaded knowledge base.
+
+---
+
+## Development Prompts
 
 Record of key prompts used to coordinate AI assistance during the build process.
 
@@ -113,4 +143,45 @@ Record of key prompts used to coordinate AI assistance during the build process.
 
 ---
 
-*More prompts will be added as development progresses through each phase.*
+### Phase 6: Next.js Frontend Development
+
+**Prompt**: "Build a Next.js 14 frontend with App Router. Create a useChatSession hook that manages WebSocket connections to the ErrorAgent, handles session persistence with localStorage, and provides typing indicators. Build UI components: ChatMessageBubble with copy-to-clipboard for assistant messages, ChatMessageList with auto-scroll and empty state, ChatInput with Enter-to-send, and DocUploadPanel for uploading knowledge base documents via REST API. Style everything with Tailwind using a modern dark theme with gradient accents."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: I architected the frontend to match the backend's WebSocket-based streaming architecture. The useChatSession hook manages connection lifecycle, message state, and persistence. I designed the UI to be production-ready with professional styling, proper loading states, and UX enhancements like typing indicators and copy buttons. The localStorage persistence ensures sessions survive page reloads.
+
+**Enhancement Prompt**: "Add CORS headers to the Worker to allow cross-origin requests from localhost:3000 and any deployed Vercel domain. Move WebSocket upgrade handling before the router so it bypasses CORS middleware. Update ChatMessageList to show a typing indicator when the assistant is generating responses, using animated bouncing dots that match the assistant message styling."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: After initial frontend deployment testing, CORS blocked document uploads and WebSocket connections from the deployed frontend. I designed the CORS configuration to be permissive for development while maintaining security. The typing indicator improves perceived performance by showing activity during LLM generation.
+
+**Mobile Optimization Prompt**: "Make the website fully mobile-responsive. Add a collapsible sidebar with hamburger menu for mobile devices, implement touch-friendly button sizes (minimum 44px), use responsive spacing and typography with Tailwind breakpoints (sm:, lg:), and hide non-essential text on small screens. Add viewport configuration to prevent zooming issues. The sidebar should slide in from the left with a dark overlay on mobile."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: To ensure the application works well on all devices, I designed a mobile-first responsive layout. The sidebar becomes a slide-out drawer on mobile with proper touch interactions, and all UI elements scale appropriately. This makes the app professional and usable on phones and tablets.
+
+---
+
+### Phase 7+: Documentation and Polish
+
+**Prompt**: "Complete PROMPTS.md with the system prompt used by ErrorAgent including how RAG context is injected. Create a professional README.md suitable for recruiters with: project overview, architecture diagram, live demo link, test cases to try, tech stack breakdown, deployment instructions for both Worker and Next.js frontend, and local development setup as a fallback. Include a complete phase plan showing all 10 development phases with clear objectives. Make it concise, well-structured, and impressive."
+
+- **Tool**: GitHub Copilot
+- **Date**: 2025-11-26
+- **Context**: Preparing the repository for public visibility and portfolio presentation. I designed the documentation to highlight technical achievements, architectural decisions, and the complete development journey from concept to deployment. The README targets technical recruiters and hiring managers who need to quickly understand scope, complexity, and execution quality.
+
+---
+
+## Summary
+
+This project demonstrates effective AI-assisted development while maintaining clear technical ownership:
+
+- **Strategic Planning**: I designed the complete architecture, phase plan, and technical requirements
+- **Implementation**: GitHub Copilot helped generate boilerplate, debug issues, and implement complex patterns
+- **Problem Solving**: I diagnosed all critical bugs and designed solutions (SSE parsing, CORS configuration, session management)
+- **Integration**: I orchestrated the full stack integration across Workers, Durable Objects, D1, Vectorize, Workers AI, Rust WASM, and Next.js
+
+The prompts show a progression from infrastructure setup through complex AI pipeline integration, demonstrating both breadth and depth of full-stack edge computing development.
