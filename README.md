@@ -447,3 +447,5 @@ The frontend will start at `http://localhost:3000`
 ---
 
 **Built with ❤️ using Cloudflare Workers, Next.js, and Rust**
+
+*Documentation assisted by GitHub Copilot*
