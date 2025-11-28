@@ -5,6 +5,7 @@ import { parseLogsWithWasm } from "../logParser";
 import { querySimilar } from "../vectorStore";
 import { chatWithLlmStream } from "../ai";
 import { SessionRepository } from "../sessionRepository";
+import { runLangChainRagOnLogStreaming, looksLikeLog } from "../langchainRag";
 
 interface AgentState {
     sessionId: string;
@@ -143,58 +144,83 @@ export class ErrorAgent extends Agent<Env, AgentState> {
             // ignore parsing errors, just fall back to normal chat
         }
 
-        // 2. Retrieve context from Vectorize based on the message (or log summary)
-        const queryText = logSummary || content;
-        let contextChunks: string[] = [];
-        try {
-            const results = await querySimilar(this.env, queryText, 4);
-            contextChunks = results.map(
-                (r, idx) => `# Context ${idx + 1} (score=${r.score?.toFixed(3)}):\n${r.text}`
-            );
-        } catch (e) {
-            // no context available yet is fine
-        }
+        // Check if content looks like a log/error trace
+        const isLogLike = looksLikeLog(content);
 
-        // 3. Fetch recent history from D1
-        const recent = await repo.getRecentMessages(state.sessionId, 10);
-
-        // 4. Build prompt
-        const systemPrompt = [
-            "You are an AI assistant that helps developers understand and debug errors and logs.",
-            "If log analysis is available, prioritize explaining the root cause and next steps.",
-            "Use the provided context snippets if they are relevant, but don't hallucinate details."
-        ].join("\n");
-
-        const contextSection =
-            contextChunks.length > 0
-                ? `\n\n=== Retrieved Context ===\n${contextChunks.join("\n\n")}\n\n=== End Context ===\n`
-                : "";
-
-        const historyMessages = recent
-            .map(m => ({ role: m.role, content: m.content as string }))
-            .filter(m => m.role === "user" || m.role === "assistant");
-
-        const messages = [
-            { role: "system" as const, content: systemPrompt + contextSection },
-            ...historyMessages,
-            { role: "user" as const, content }
-        ];
-
-        // 5. Stream LLM response tokens to client and buffer them
         let assistantContent = "";
         let tokenCount = 0;
 
         try {
-            await chatWithLlmStream(this.env, messages, token => {
-                tokenCount++;
-                assistantContent += token;
-                ws.send(
-                    JSON.stringify({
-                        type: "token",
-                        token
-                    })
+            if (isLogLike) {
+                // 🌟 LangChain-based RAG path for log-like messages
+                console.log("[ErrorAgent] Using LangChain RAG path for log analysis");
+
+                assistantContent = await runLangChainRagOnLogStreaming(
+                    this.env,
+                    content,
+                    (token) => {
+                        tokenCount++;
+                        ws.send(
+                            JSON.stringify({
+                                type: "token",
+                                token
+                            })
+                        );
+                    }
                 );
-            });
+            } else {
+                // Existing non-LangChain path for normal chat
+                console.log("[ErrorAgent] Using standard RAG path");
+
+                // 2. Retrieve context from Vectorize based on the message (or log summary)
+                const queryText = logSummary || content;
+                let contextChunks: string[] = [];
+                try {
+                    const results = await querySimilar(this.env, queryText, 4);
+                    contextChunks = results.map(
+                        (r, idx) => `# Context ${idx + 1} (score=${r.score?.toFixed(3)}):\n${r.text}`
+                    );
+                } catch (e) {
+                    // no context available yet is fine
+                }
+
+                // 3. Fetch recent history from D1
+                const recent = await repo.getRecentMessages(state.sessionId, 10);
+
+                // 4. Build prompt
+                const systemPrompt = [
+                    "You are an AI assistant that helps developers understand and debug errors and logs.",
+                    "If log analysis is available, prioritize explaining the root cause and next steps.",
+                    "Use the provided context snippets if they are relevant, but don't hallucinate details."
+                ].join("\n");
+
+                const contextSection =
+                    contextChunks.length > 0
+                        ? `\n\n=== Retrieved Context ===\n${contextChunks.join("\n\n")}\n\n=== End Context ===\n`
+                        : "";
+
+                const historyMessages = recent
+                    .map(m => ({ role: m.role, content: m.content as string }))
+                    .filter(m => m.role === "user" || m.role === "assistant");
+
+                const messages = [
+                    { role: "system" as const, content: systemPrompt + contextSection },
+                    ...historyMessages,
+                    { role: "user" as const, content }
+                ];
+
+                // 5. Stream LLM response tokens to client and buffer them
+                await chatWithLlmStream(this.env, messages, token => {
+                    tokenCount++;
+                    assistantContent += token;
+                    ws.send(
+                        JSON.stringify({
+                            type: "token",
+                            token
+                        })
+                    );
+                });
+            }
 
             console.log(`[ErrorAgent] Received ${tokenCount} tokens, total length: ${assistantContent.length}`);
 

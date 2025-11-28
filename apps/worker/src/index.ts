@@ -9,6 +9,7 @@ import {
     handleGetSession,
     handleLogAnalyze,
     handleAgentSession,
+    handleLangChainLogAnalyze,
 } from "./handlers";
 import { ErrorAgent } from "./agents/ErrorAgent";
 
@@ -59,6 +60,9 @@ router.on("POST", "/api/agent/session", handleAgentSession);
 router.on("POST", "/api/docs/upload", handleDocsUpload);
 router.on("POST", "/api/log/analyze", handleLogAnalyze);
 router.on("GET", /^\/api\/session\/.+/, handleGetSession);
+
+// LangChain RAG endpoint for log analysis
+router.on("POST", "/api/langchain/log-analyze", handleLangChainLogAnalyze);
 
 export default {
     async fetch(request: Request, env: Env): Promise<Response> {

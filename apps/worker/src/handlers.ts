@@ -4,6 +4,7 @@ import { ChatMessage, ChatRequest } from "@cf_ai/shared";
 import { SessionRepository } from "./sessionRepository";
 import { parseLogsWithWasm } from "./logParser";
 import { upsertDocuments } from "./vectorStore";
+import { runLangChainRagOnLog } from "./langchainRag";
 
 /**
  * Root endpoint - basic health check
@@ -225,4 +226,54 @@ export async function handleAgentSession(req: Request, _env: Env): Promise<Respo
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
     );
+}
+
+/**
+ * LangChain RAG endpoint - Analyze logs using LangChain with Cloudflare Vectorize
+ * This endpoint uses LangChain's RunnableSequence and PromptTemplate
+ * to orchestrate RAG-based log analysis with Cloudflare Vectorize as the retriever
+ * and Workers AI as the LLM.
+ */
+export async function handleLangChainLogAnalyze(req: Request, env: Env): Promise<Response> {
+    if (req.method !== "POST") {
+        return new Response("Method not allowed", { status: 405 });
+    }
+
+    let body: { log?: string };
+    try {
+        body = await req.json();
+    } catch {
+        return new Response("Invalid JSON", { status: 400 });
+    }
+
+    if (!body.log || typeof body.log !== "string") {
+        return new Response("Missing 'log' field", { status: 400 });
+    }
+
+    try {
+        console.log("[LangChain RAG] Starting analysis for log:", body.log.substring(0, 100));
+        const answer = await runLangChainRagOnLog(env, body.log);
+        console.log("[LangChain RAG] Analysis complete, answer length:", answer.length);
+
+        return new Response(
+            JSON.stringify({ answer }),
+            {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+            }
+        );
+    } catch (error) {
+        console.error("[LangChain RAG] Error:", error);
+        console.error("[LangChain RAG] Error stack:", error instanceof Error ? error.stack : "no stack");
+        return new Response(
+            JSON.stringify({
+                error: "Failed to analyze log with LangChain RAG",
+                details: error instanceof Error ? error.message : String(error),
+            }),
+            {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+            }
+        );
+    }
 }

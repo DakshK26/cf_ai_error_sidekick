@@ -12,7 +12,9 @@
     },
     "dependencies": {
         "@cf_ai/shared": "workspace:*",
-        "agents": "^0.2.23"
+        "@langchain/core": "^1.1.0",
+        "agents": "^0.2.23",
+        "langchain": "^1.1.1"
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20241112.0",
