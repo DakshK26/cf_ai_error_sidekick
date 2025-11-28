@@ -14,6 +14,7 @@ This project demonstrates modern edge-native architecture by building an intelli
 
 - **Parses logs** using a Rust-to-WebAssembly module for high-performance regex operations
 - **Retrieves relevant context** from a vector database (Cloudflare Vectorize) using semantic similarity
+- **Analyzes errors with LangChain** using structured RAG pipelines for context-aware explanations
 - **Streams LLM responses** in real-time via WebSocket using Cloudflare Durable Objects
 - **Persists conversations** across sessions using Cloudflare D1 (SQLite at the edge)
 - **Delivers a responsive UI** built with Next.js and deployed on Vercel
@@ -74,6 +75,7 @@ This project demonstrates modern edge-native architecture by building an intelli
 - **Database**: Cloudflare D1 (distributed SQLite)
 - **Vector DB**: Cloudflare Vectorize (semantic search)
 - **AI**: Cloudflare Workers AI (Llama 3.3 70B Instruct, BGE embeddings)
+- **RAG Framework**: LangChain JS (Document format, PromptTemplate patterns)
 - **WASM**: Rust compiled to WebAssembly (`wasm-bindgen`)
 
 ### Frontend (Next.js)
@@ -305,6 +307,23 @@ Upload documentation to the vector knowledge base.
 }
 ```
 
+#### `POST /api/langchain/log-analyze`
+Analyze logs using LangChain RAG pipeline with Cloudflare Vectorize.
+
+**Request**:
+```json
+{
+  "log": "ERROR: Database connection failed at connect()"
+}
+```
+
+**Response**:
+```json
+{
+  "answer": "### Analysis...\n1. What the error means...\n2. Likely root cause...\n3. Suggested next steps..."
+}
+```
+
 ### WebSocket Endpoint
 
 #### `WS /agent/connect/:sessionId`
@@ -393,6 +412,14 @@ Workers AI returns streaming responses in Server-Sent Events format. The custom 
 - Parses `data:` lines and extracts JSON
 - Handles `[DONE]` markers gracefully
 - Forwards clean tokens over WebSocket in real-time
+
+### 5. **LangChain RAG Integration**
+For log-like inputs, the ErrorAgent routes requests through a LangChain-based RAG pipeline:
+- Uses LangChain's Document format for retrieved context chunks
+- Structures prompts using PromptTemplate patterns for consistent analysis
+- Cloudflare Vectorize serves as the retriever backend
+- Workers AI (Llama 3.3 70B) generates context-aware explanations
+- Provides structured output: error meaning, root cause, and debugging steps
 
 ---
 
