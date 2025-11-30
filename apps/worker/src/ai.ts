@@ -38,17 +38,35 @@ export async function embedText(env: Env, texts: string[]): Promise<number[][]> 
  * @param env - Worker environment with AI binding
  * @param messages - Array of chat messages (system, user, assistant)
  * @param onToken - Callback function called for each token streamed
+ * @param maxTokens - Maximum tokens to generate (default: 2048)
  */
 export async function chatWithLlmStream(
     env: Env,
     messages: { role: "system" | "user" | "assistant"; content: string }[],
-    onToken: (token: string) => void
+    onToken: (token: string) => void,
+    maxTokens: number = 2048
 ): Promise<void> {
     // Workers AI supports streaming for LLM responses
     const response = await env.AI.run(env.LLM_MODEL as any, {
         messages,
-        stream: true
+        stream: true,
+        max_tokens: maxTokens
     });
+
+    // Helper function to process SSE data lines
+    const processDataLine = (data: string) => {
+        if (data === '[DONE]') return;
+
+        try {
+            const parsed = JSON.parse(data);
+            const token = parsed.response || parsed.token || parsed.content || "";
+            if (token) {
+                onToken(token);
+            }
+        } catch (e) {
+            // Ignore parse errors for malformed chunks
+        }
+    };
 
     // Check if response is a ReadableStream
     if (response && typeof response === 'object' && 'getReader' in response) {
@@ -70,18 +88,18 @@ export async function chatWithLlmStream(
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         const data = line.slice(6); // Remove "data: " prefix
+                        processDataLine(data);
+                    }
+                }
+            }
 
-                        if (data === '[DONE]') continue;
-
-                        try {
-                            const parsed = JSON.parse(data);
-                            const token = parsed.response || parsed.token || parsed.content || "";
-                            if (token) {
-                                onToken(token);
-                            }
-                        } catch (e) {
-                            // Ignore parse errors for malformed chunks
-                        }
+            // Process any remaining data in the buffer after stream ends
+            if (buffer.trim()) {
+                const remainingLines = buffer.split('\n');
+                for (const line of remainingLines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        processDataLine(data);
                     }
                 }
             }
