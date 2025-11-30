@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ChatMessageView } from "@/hooks/useChatSession";
+import ReactMarkdown from "react-markdown";
 
 interface ChatMessageBubbleProps {
     message: ChatMessageView;
@@ -29,7 +30,17 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                     }`}>
                     {isUser ? "You" : "Assistant"}
                 </div>
-                <div className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">{message.content}</div>
+                
+                {/* Render Markdown for assistant messages, plain text for user messages */}
+                {isUser ? (
+                    <div className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
+                        {message.content}
+                    </div>
+                ) : (
+                    <div className="prose prose-invert prose-sm sm:prose-base max-w-none prose-headings:text-slate-100 prose-headings:font-semibold prose-h3:text-lg prose-h4:text-base prose-p:text-slate-200 prose-strong:text-slate-100 prose-li:text-slate-200 prose-code:text-cyan-400 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                    </div>
+                )}
 
                 {/* Copy button for assistant messages */}
                 {!isUser && (
