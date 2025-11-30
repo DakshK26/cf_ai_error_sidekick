@@ -30,7 +30,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                     }`}>
                     {isUser ? "You" : "Assistant"}
                 </div>
-                
+
                 {/* Render Markdown for assistant messages, plain text for user messages */}
                 {isUser ? (
                     <div className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
