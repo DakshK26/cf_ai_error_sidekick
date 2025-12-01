@@ -4,7 +4,7 @@
 
 A production-ready full-stack application that analyzes error logs and technical issues using retrieval-augmented generation (RAG), WebAssembly-accelerated parsing, and streaming LLM responses: all deployed on Cloudflare's global edge infrastructure.
 
-🔗 **[Live Demo](https://cf-ai-error-sidekick.vercel.app)** | 📚 **[API Endpoint](https://cf_ai_error_sidekick.khannad24.workers.dev)**
+🔗 **[Live Demo](https://ai-error-sidekick.vercel.app/)** | 📚 **[API Endpoint](https://cf_ai_error_sidekick.khannad24.workers.dev)**
 
 ---
 
