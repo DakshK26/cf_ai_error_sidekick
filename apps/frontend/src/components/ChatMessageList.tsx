@@ -13,33 +13,56 @@ interface ChatMessageListProps {
 
 const EXAMPLE_PROMPTS = [
     {
-        label: "Worker timeout error",
-        prompt: `Error: Worker exceeded CPU time limit
-    at async handleRequest (worker.js:45:12)
-    at async Object.fetch (worker.js:12:5)
-Status: 500
-Duration: 50021ms
-Ray ID: 8a2f3b4c5d6e7f8g`
+        label: "Fix CORS headers",
+        prompt: `My Cloudflare Worker returns this error:
+
+Access to fetch blocked by CORS policy: No 'Access-Control-Allow-Origin' header present.
+
+Here's my current code:
+
+export default {
+  async fetch(request) {
+    const data = { message: "Hello" };
+    return new Response(JSON.stringify(data));
+  }
+};
+
+How do I fix this? Show me the complete working code.`
     },
     {
-        label: "D1 database error",
-        prompt: `D1_ERROR: SQLITE_CONSTRAINT: UNIQUE constraint failed: users.email
-    at D1Database.exec (d1.js:89:15)
-    at insertUser (api/users.js:23:8)
-Query: INSERT INTO users (email, name) VALUES (?, ?)`
+        label: "Handle D1 errors",
+        prompt: `I'm getting this D1 error in my Cloudflare Worker:
+
+D1_ERROR: SQLITE_CONSTRAINT: UNIQUE constraint failed: users.email
+
+My insert code:
+const result = await env.DB.prepare("INSERT INTO users (email, name) VALUES (?, ?)").bind(email, name).run();
+
+How should I properly handle this error and return appropriate responses? Show me a robust implementation with error handling.`
     },
     {
-        label: "KV binding missing",
+        label: "Fix KV binding",
         prompt: `TypeError: Cannot read properties of undefined (reading 'get')
     at Object.fetch (worker.js:8:24)
-Code: const value = await env.MY_KV.get("key");
-Bindings configured: ASSETS, DB`
+
+My code:
+export default {
+  async fetch(request, env) {
+    const value = await env.MY_KV.get("config");
+    return new Response(value);
+  }
+};
+
+My wrangler.toml has the KV namespace but it's not working. What's wrong and how do I fix it?`
     },
     {
-        label: "CORS preflight failing",
-        prompt: `Access to fetch at 'https://api.example.com/data' from origin 'https://mysite.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present.
+        label: "Stream response",
+        prompt: `How do I stream a response from my Cloudflare Worker? I want to use Server-Sent Events to stream data to the client.
 
-My worker handles GET requests but OPTIONS requests return 404.`
+Show me a complete example with:
+1. The Worker code that streams
+2. How to properly format SSE messages
+3. Client-side code to consume the stream`
     }
 ];
 

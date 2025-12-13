@@ -112,10 +112,6 @@ export default function HomePage() {
 
                 {/* Sidebar footer */}
                 <div className="p-4 border-t border-zinc-800 space-y-3">
-                    <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-500">Session</span>
-                        <span className="font-mono text-zinc-400">{sessionId?.slice(0, 8)}</span>
-                    </div>
                     <button
                         onClick={resetSession}
                         className="w-full px-3 py-2 text-sm text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-colors"
