@@ -158,8 +158,9 @@ export function useChatSession(): UseChatSessionResult {
 
         return () => {
             ws.close();
-            if (reconnectTimeoutRef.current) {
-                clearTimeout(reconnectTimeoutRef.current);
+            const timeoutId = reconnectTimeoutRef.current;
+            if (timeoutId) {
+                clearTimeout(timeoutId);
             }
         };
     }, [sessionId]);

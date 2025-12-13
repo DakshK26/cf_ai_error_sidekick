@@ -68,10 +68,10 @@ export function LandingPage({ onTryDemo }: LandingPageProps) {
                             The problem
                         </h2>
                         <p className="text-lg text-slate-400 leading-relaxed mb-4">
-                            Cloudflare error logs don't explain what went wrong.
+                            Cloudflare error logs don&apos;t explain what went wrong.
                         </p>
                         <p className="text-slate-500 leading-relaxed">
-                            You get a stack trace, maybe a timestamp, and a cryptic message. Then you're on your own—digging through docs, searching GitHub issues, guessing.
+                            You get a stack trace, maybe a timestamp, and a cryptic message. Then you&apos;re on your own—digging through docs, searching GitHub issues, guessing.
                         </p>
                     </div>
                     <div>
@@ -122,11 +122,11 @@ export function LandingPage({ onTryDemo }: LandingPageProps) {
                         <ul className="space-y-4 text-slate-400">
                             <li className="flex items-start gap-3">
                                 <span className="text-blue-400 mt-1">•</span>
-                                <span><strong className="text-slate-300">Rust/WASM for parsing</strong> — JavaScript regex can't reliably parse multi-line stack traces. Rust compiles to WASM, runs in Workers, handles edge cases.</span>
+                                <span><strong className="text-slate-300">Rust/WASM for parsing</strong> — JavaScript regex can&apos;t reliably parse multi-line stack traces. Rust compiles to WASM, runs in Workers, handles edge cases.</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="text-blue-400 mt-1">•</span>
-                                <span><strong className="text-slate-300">Vectorize for retrieval</strong> — Cloudflare's vector database means embeddings stay close to compute. No external API calls for context lookup.</span>
+                                <span><strong className="text-slate-300">Vectorize for retrieval</strong> — Cloudflare&apos;s vector database means embeddings stay close to compute. No external API calls for context lookup.</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="text-blue-400 mt-1">•</span>
@@ -134,7 +134,7 @@ export function LandingPage({ onTryDemo }: LandingPageProps) {
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="text-blue-400 mt-1">•</span>
-                                <span><strong className="text-slate-300">D1 for sessions</strong> — Conversation history persists in Cloudflare's SQLite, so context builds across messages.</span>
+                                <span><strong className="text-slate-300">D1 for sessions</strong> — Conversation history persists in Cloudflare&apos;s SQLite, so context builds across messages.</span>
                             </li>
                         </ul>
                     </div>
@@ -156,7 +156,7 @@ export function LandingPage({ onTryDemo }: LandingPageProps) {
                             Workers have constraints
                         </h3>
                         <p className="text-sm text-slate-500 leading-relaxed">
-                            No Node.js. Limited CPU time. Memory caps. You can't just npm install your way out. Every library choice had to account for the edge runtime.
+                            No Node.js. Limited CPU time. Memory caps. You can&apos;t just npm install your way out. Every library choice had to account for the edge runtime.
                         </p>
                     </div>
                     <div className="p-6 border border-slate-800/50 rounded-lg bg-slate-900/20">
