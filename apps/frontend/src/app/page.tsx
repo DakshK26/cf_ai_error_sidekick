@@ -87,7 +87,7 @@ export default function HomePage() {
                         </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-1 font-mono">
-                        // paste errors, get fixes
+                        {`// paste errors, get fixes`}
                     </p>
                 </div>
 

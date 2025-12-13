@@ -88,7 +88,7 @@ export function ChatMessageList({ messages, isTyping, onSendExample }: ChatMessa
                         Paste an error or stack trace
                     </h2>
                     <p className="text-sm text-gray-500 font-mono">
-                        // I&apos;ll explain what went wrong and suggest fixes
+                        {`// I'll explain what went wrong and suggest fixes`}
                     </p>
                 </div>
 
