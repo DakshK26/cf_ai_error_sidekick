@@ -99,7 +99,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                             code({ className, children, ...props }) {
                                 const match = /language-(\w+)/.exec(className || "");
                                 const codeString = String(children).replace(/\n$/, "");
-                                
+
                                 // Check if this is a code block (has language) or inline code
                                 if (match) {
                                     return (
@@ -108,7 +108,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                                         </CodeBlock>
                                     );
                                 }
-                                
+
                                 // Inline code
                                 return (
                                     <code className={className} {...props}>
