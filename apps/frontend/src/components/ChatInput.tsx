@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, useRef, useEffect } from "react";
 
 interface ChatInputProps {
     onSend: (content: string) => void;
@@ -9,6 +9,7 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
     const [input, setInput] = useState("");
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleSend = () => {
         if (!input.trim() || disabled) return;
@@ -23,27 +24,42 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         }
     };
 
+    // Auto-resize textarea
+    useEffect(() => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + "px";
+        }
+    }, [input]);
+
     return (
-        <div className="border-t border-slate-800/40 p-3 sm:p-6 bg-[#0a0f1a]/80 backdrop-blur-sm flex-shrink-0">
-            <div className="flex gap-2 sm:gap-3 items-end">
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Paste your error here..."
-                    disabled={disabled}
-                    className="flex-1 bg-slate-800/40 text-slate-100 border border-slate-700/40 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 disabled:opacity-50 transition-all placeholder:text-slate-600"
-                    rows={3}
-                />
+        <div className="p-4 sm:p-6">
+            <div className="flex gap-3 items-end">
+                <div className="flex-1 relative">
+                    <textarea
+                        ref={textareaRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Paste an error or ask a question..."
+                        disabled={disabled}
+                        className="w-full bg-zinc-900 text-zinc-100 border border-zinc-700 rounded-xl px-4 py-3 text-[15px] resize-none focus:outline-none focus:border-zinc-500 disabled:opacity-50 transition-colors placeholder:text-zinc-500 min-h-[48px] max-h-[200px]"
+                        rows={1}
+                    />
+                </div>
                 <button
                     onClick={handleSend}
                     disabled={disabled || !input.trim()}
-                    className="px-4 sm:px-5 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm sm:text-base rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors min-h-[44px] sm:h-[52px]"
+                    className="p-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                    title="Send message"
                 >
-                    Send
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
                 </button>
             </div>
-            <p className="text-xs text-slate-600 mt-2 sm:mt-3 hidden sm:block">
+            <p className="text-xs text-zinc-600 mt-2 text-center">
                 Enter to send · Shift+Enter for new line
             </p>
         </div>

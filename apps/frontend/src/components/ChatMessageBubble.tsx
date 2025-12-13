@@ -18,48 +18,39 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    return (
-        <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3 sm:mb-4 px-1 sm:px-2 group`}>
-            <div
-                className={`max-w-[85%] sm:max-w-2xl px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg relative ${isUser
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-800/60 text-slate-100 border border-slate-700/40"
-                    }`}
-            >
-                <div className={`text-[10px] font-medium mb-1.5 sm:mb-2 tracking-wide uppercase ${isUser ? "text-blue-200" : "text-slate-500"
-                    }`}>
-                    {isUser ? "You" : "Sidekick"}
-                </div>
-
-                {/* Render Markdown for assistant messages, plain text for user messages */}
-                {isUser ? (
-                    <div className="whitespace-pre-wrap break-words leading-relaxed text-sm sm:text-base">
+    if (isUser) {
+        return (
+            <div className="mb-6">
+                <div className="bg-zinc-800 rounded-2xl rounded-br-md px-4 py-3 inline-block max-w-[85%] ml-auto">
+                    <div className="whitespace-pre-wrap break-words text-zinc-100 text-[15px] leading-relaxed">
                         {message.content}
                     </div>
-                ) : (
-                    <div className="prose prose-invert prose-sm sm:prose-base max-w-none prose-headings:text-slate-100 prose-headings:font-semibold prose-h3:text-lg prose-h4:text-base prose-p:text-slate-200 prose-strong:text-slate-100 prose-li:text-slate-200 prose-code:text-cyan-400 prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-700">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-                )}
+                </div>
+            </div>
+        );
+    }
 
-                {/* Copy button for assistant messages */}
-                {!isUser && (
-                    <button
-                        onClick={handleCopy}
-                        className="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/50 hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                        title="Copy to clipboard"
-                    >
-                        {copied ? (
-                            <svg className="w-3.5 h-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                        ) : (
-                            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                        )}
-                    </button>
-                )}
+    return (
+        <div className="mb-6 group">
+            <div className="text-zinc-100 relative">
+                <div className="prose prose-invert prose-zinc max-w-none text-[15px] leading-relaxed prose-p:text-zinc-300 prose-p:my-3 prose-headings:text-zinc-100 prose-headings:font-medium prose-h3:text-base prose-strong:text-zinc-100 prose-strong:font-medium prose-li:text-zinc-300 prose-code:text-violet-300 prose-code:bg-zinc-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-pre:bg-zinc-900 prose-pre:border prose-pre:border-zinc-800 prose-pre:rounded-lg prose-a:text-violet-400 prose-a:no-underline hover:prose-a:underline">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
+                <button
+                    onClick={handleCopy}
+                    className="absolute -top-1 right-0 p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 opacity-0 group-hover:opacity-100 transition-all"
+                    title="Copy"
+                >
+                    {copied ? (
+                        <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                    ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                    )}
+                </button>
             </div>
         </div>
     );

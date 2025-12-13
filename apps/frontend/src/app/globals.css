@@ -2,13 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
-    --background: #030712;
-    --foreground: #f1f5f9;
-    --accent: #3b82f6;
-    --accent-muted: #1e40af;
+    --bg-primary: #18181b;
+    --bg-secondary: #27272a;
+    --bg-tertiary: #3f3f46;
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --border: #3f3f46;
+    --accent: #a78bfa;
+    --accent-hover: #c4b5fd;
+    --user-bg: #3f3f46;
+    --assistant-bg: transparent;
 }
 
 * {
@@ -21,34 +28,29 @@ html {
 }
 
 body {
-    color: var(--foreground);
-    background: var(--background);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
 }
 
-/* Monospace for code elements */
-code,
-pre,
-.font-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+code, pre, .font-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Subtle focus states */
 *:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
 
-/* Smooth transitions globally */
-a,
-button {
+a, button {
     transition: all 0.15s ease;
 }
 
-/* Custom scrollbar - minimal */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -56,47 +58,17 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 3px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #52525b;
 }
 
-/* Animation utilities */
-@keyframes fade-in-up {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fade-in {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.animate-fade-in-up {
-    animation: fade-in-up 0.5s ease-out forwards;
-}
-
-.animate-fade-in {
-    animation: fade-in 0.4s ease-out forwards;
-}
-
-.animation-delay-100 {
-    animation-delay: 100ms;
+::selection {
+    background: var(--accent);
+    color: var(--bg-primary);
 }
 
 .animation-delay-200 {

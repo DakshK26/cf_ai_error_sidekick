@@ -21,32 +21,27 @@ export function ChatMessageList({ messages, isTyping }: ChatMessageListProps) {
     if (messages.length === 0) {
         return (
             <div className="flex-1 flex items-center justify-center p-8">
-                <div className="text-center max-w-md space-y-4">
-                    <div className="w-14 h-14 mx-auto rounded-xl bg-slate-800/50 flex items-center justify-center border border-slate-700/30">
-                        <svg className="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p className="text-base font-medium text-slate-300 mb-2">
-                            Paste an error or log
-                        </p>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                            Stack traces, error messages, or anything confusing.
-                        </p>
-                    </div>
+                <div className="text-center max-w-md">
+                    <p className="text-lg text-zinc-400 mb-2">
+                        Paste an error or stack trace
+                    </p>
+                    <p className="text-sm text-zinc-600">
+                        I&apos;ll explain what went wrong and suggest fixes.
+                    </p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex-1 overflow-y-auto p-6">
-            {messages.map((message) => (
-                <ChatMessageBubble key={message.id} message={message} />
-            ))}
-            {isTyping && <TypingIndicator />}
-            <div ref={bottomRef} />
+        <div className="flex-1 overflow-y-auto">
+            <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
+                {messages.map((message) => (
+                    <ChatMessageBubble key={message.id} message={message} />
+                ))}
+                {isTyping && <TypingIndicator />}
+                <div ref={bottomRef} />
+            </div>
         </div>
     );
 }
