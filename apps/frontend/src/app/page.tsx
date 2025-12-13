@@ -190,7 +190,11 @@ export default function HomePage() {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-hidden">
-                    <ChatMessageList messages={messages} isTyping={isTyping} />
+                    <ChatMessageList
+                        messages={messages}
+                        isTyping={isTyping}
+                        onSendExample={isConnected ? sendMessage : undefined}
+                    />
                 </div>
 
                 {/* Input */}
