@@ -2,20 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-    --bg-primary: #18181b;
-    --bg-secondary: #27272a;
-    --bg-tertiary: #3f3f46;
-    --text-primary: #fafafa;
-    --text-secondary: #a1a1aa;
-    --text-muted: #71717a;
-    --border: #3f3f46;
-    --accent: #a78bfa;
-    --accent-hover: #c4b5fd;
-    --user-bg: #3f3f46;
-    --assistant-bg: transparent;
+    /* Core palette - inspired by silin.ca */
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111113;
+    --bg-tertiary: #1a1a1e;
+    --bg-card: #0f0f11;
+    
+    /* Text colors */
+    --text-primary: #f5f5f5;
+    --text-secondary: #a8a8a8;
+    --text-muted: #5a5a5a;
+    
+    /* Accent - vibrant orange */
+    --accent: #ff6b35;
+    --accent-light: #ff8c5a;
+    --accent-glow: rgba(255, 107, 53, 0.4);
+    --accent-subtle: rgba(255, 107, 53, 0.1);
+    
+    /* Borders */
+    --border: #1f1f23;
+    --border-hover: #2a2a30;
+    
+    /* Status */
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --error: #ef4444;
 }
 
 * {
@@ -30,15 +44,46 @@ html {
 body {
     color: var(--text-primary);
     background: var(--bg-primary);
-    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 15px;
     line-height: 1.6;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Subtle grid background pattern */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(255, 107, 53, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 107, 53, 0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Subtle radial glow in corner */
+body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255, 107, 53, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 code,
 pre,
 .font-mono {
-    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    font-family: 'Space Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 *:focus-visible {
@@ -48,12 +93,13 @@ pre,
 
 a,
 button {
-    transition: all 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -61,32 +107,99 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--bg-tertiary);
-    border-radius: 4px;
+    background: var(--border);
+    border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #52525b;
+    background: var(--border-hover);
 }
 
+/* Selection */
 ::selection {
     background: var(--accent);
     color: var(--bg-primary);
 }
 
-.animation-delay-200 {
-    animation-delay: 200ms;
+/* Animation delays */
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+
+/* Glow effects */
+.glow-orange {
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(255, 107, 53, 0.2);
 }
 
-.animation-delay-300 {
-    animation-delay: 300ms;
+.glow-text-orange {
+    text-shadow: 0 0 20px var(--accent-glow);
 }
 
-.animation-delay-400 {
-    animation-delay: 400ms;
+/* Card hover effect */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
 /* Prevent layout shift on load */
 .opacity-0 {
     opacity: 0;
+}
+
+/* Smooth fade in animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Robot float animation */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse glow for status indicators */
+@keyframes pulseGlow {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 var(--accent-glow);
+        opacity: 1;
+    }
+    50% { 
+        box-shadow: 0 0 10px 3px var(--accent-glow);
+        opacity: 0.8;
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+/* Typing cursor blink */
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.animate-blink {
+    animation: blink 1s step-end infinite;
 }
