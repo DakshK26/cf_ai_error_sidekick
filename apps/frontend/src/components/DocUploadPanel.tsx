@@ -58,23 +58,23 @@ export function DocUploadPanel() {
         <div className="flex flex-col gap-4">
             <div>
                 <h3 className="text-sm font-semibold text-slate-200 mb-2">
-                    Knowledge Base
+                    Add context
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                    Upload reference documentation to enhance context retrieval
+                    Paste docs or error patterns to improve answers
                 </p>
             </div>      <textarea
                 value={docText}
                 onChange={(e) => setDocText(e.target.value)}
                 placeholder="Paste documentation or error patterns..."
-                className="w-full bg-slate-900/50 text-slate-100 border border-slate-700/50 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all placeholder:text-slate-600 touch-manipulation"
+                className="w-full bg-slate-800/40 text-slate-100 border border-slate-700/40 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all placeholder:text-slate-600 touch-manipulation"
                 rows={4}
             />      <button
                 onClick={handleUpload}
                 disabled={isUploading || !docText.trim()}
-                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all duration-200 shadow-lg shadow-blue-500/20"
+                className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
             >
-                {isUploading ? "Uploading..." : "Upload to Index"}
+                {isUploading ? "Uploading..." : "Add to index"}
             </button>            {uploadStatus && (
                 <div
                     className={`text-xs px-3 py-2 rounded ${uploadStatus.type === "success"

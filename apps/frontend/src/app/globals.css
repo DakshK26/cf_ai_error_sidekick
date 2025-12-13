@@ -2,20 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-    --background: #ffffff;
-    --foreground: #171717;
+    --background: #030712;
+    --foreground: #f1f5f9;
+    --accent: #3b82f6;
+    --accent-muted: #1e40af;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
-    }
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
     color: var(--foreground);
     background: var(--background);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Monospace for code elements */
+code,
+pre,
+.font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Subtle focus states */
+*:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Smooth transitions globally */
+a,
+button {
+    transition: all 0.15s ease;
+}
+
+/* Custom scrollbar - minimal */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Animation utilities */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
+}
+
+.animation-delay-100 {
+    animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+    animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+    animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+    animation-delay: 400ms;
+}
+
+/* Prevent layout shift on load */
+.opacity-0 {
+    opacity: 0;
 }

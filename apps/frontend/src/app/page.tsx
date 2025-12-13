@@ -5,8 +5,10 @@ import { useChatSession } from "@/hooks/useChatSession";
 import { ChatMessageList } from "@/components/ChatMessageList";
 import { ChatInput } from "@/components/ChatInput";
 import { DocUploadPanel } from "@/components/DocUploadPanel";
+import { LandingPage } from "@/components/LandingPage";
 
 export default function HomePage() {
+    const [showDemo, setShowDemo] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const {
         sessionId,
@@ -19,8 +21,13 @@ export default function HomePage() {
         resetSession,
     } = useChatSession();
 
+    // Show landing page first
+    if (!showDemo) {
+        return <LandingPage onTryDemo={() => setShowDemo(true)} />;
+    }
+
     return (
-        <main className="h-screen bg-slate-950 text-slate-50 flex overflow-hidden">
+        <main className="h-screen bg-[#030712] text-slate-50 flex overflow-hidden">
             {/* Mobile overlay */}
             {isSidebarOpen && (
                 <div
@@ -31,28 +38,20 @@ export default function HomePage() {
 
             {/* Sidebar */}
             <aside className={`
-                w-80 border-r border-slate-800/50 p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 overflow-y-auto bg-gradient-to-b from-slate-900 to-slate-950
+                w-80 border-r border-slate-800/40 p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 overflow-y-auto bg-[#0a0f1a]
                 fixed lg:relative inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 {/* Logo and title */}
                 <div className="pb-4 sm:pb-6">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h1 className="text-lg font-bold text-slate-100 tracking-tight">
-                                    Error Sidekick
-                                </h1>
-                                <p className="text-xs text-slate-500 font-medium">
-                                    Cloudflare Edge
-                                </p>
-                            </div>
-                        </div>
+                    <div className="flex items-center justify-between mb-4">
+                        <button
+                            onClick={() => setShowDemo(false)}
+                            className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                            <span>←</span>
+                            <span>Back</span>
+                        </button>
                         {/* Close button for mobile */}
                         <button
                             onClick={() => setIsSidebarOpen(false)}
@@ -63,8 +62,23 @@ export default function HomePage() {
                             </svg>
                         </button>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                        AI-powered log analysis with intelligent context retrieval
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-semibold text-slate-100 tracking-tight">
+                                Error Sidekick
+                            </h1>
+                            <p className="text-xs text-slate-500">
+                                Edge runtime
+                            </p>
+                        </div>
+                    </div>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                        Paste an error. Get an explanation.
                     </p>
                 </div>
 
@@ -111,7 +125,7 @@ export default function HomePage() {
             {/* Chat area */}
             <section className="flex-1 flex flex-col h-full w-full lg:w-auto">
                 {/* Header with connection status */}
-                <header className="border-b border-slate-800/50 px-4 sm:px-6 py-3 sm:py-4 bg-slate-900/50 backdrop-blur-sm flex-shrink-0">
+                <header className="border-b border-slate-800/40 px-4 sm:px-6 py-3 sm:py-4 bg-[#0a0f1a]/80 backdrop-blur-sm flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             {/* Hamburger menu for mobile */}
@@ -123,25 +137,25 @@ export default function HomePage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
-                            <h2 className="text-sm font-semibold text-slate-200 tracking-wide">Conversation</h2>
+                            <h2 className="text-sm font-medium text-slate-300">Chat</h2>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3">
                             {isConnecting && (
                                 <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
-                                    <span className="text-xs text-slate-400 font-medium hidden sm:inline">Connecting</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+                                    <span className="text-xs text-slate-500 hidden sm:inline">Connecting</span>
                                 </div>
                             )}
                             {isConnected && (
                                 <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                                    <span className="text-xs text-slate-400 font-medium hidden sm:inline">Connected</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    <span className="text-xs text-slate-500 hidden sm:inline">Ready</span>
                                 </div>
                             )}
                             {error && (
                                 <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                                    <span className="text-xs text-red-400 font-medium hidden sm:inline">Error: {error}</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                    <span className="text-xs text-red-400 hidden sm:inline">{error}</span>
                                 </div>
                             )}
                         </div>

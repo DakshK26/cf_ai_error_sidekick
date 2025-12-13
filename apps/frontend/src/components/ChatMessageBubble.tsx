@@ -21,14 +21,14 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
     return (
         <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3 sm:mb-4 px-1 sm:px-2 group`}>
             <div
-                className={`max-w-[85%] sm:max-w-2xl px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl relative ${isUser
-                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/20"
-                    : "bg-slate-800/50 text-slate-100 border border-slate-700/50 backdrop-blur-sm"
+                className={`max-w-[85%] sm:max-w-2xl px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-lg relative ${isUser
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-800/60 text-slate-100 border border-slate-700/40"
                     }`}
             >
-                <div className={`text-[10px] font-semibold mb-1.5 sm:mb-2 tracking-wide uppercase ${isUser ? "text-blue-100" : "text-slate-400"
+                <div className={`text-[10px] font-medium mb-1.5 sm:mb-2 tracking-wide uppercase ${isUser ? "text-blue-200" : "text-slate-500"
                     }`}>
-                    {isUser ? "You" : "Assistant"}
+                    {isUser ? "You" : "Sidekick"}
                 </div>
 
                 {/* Render Markdown for assistant messages, plain text for user messages */}
