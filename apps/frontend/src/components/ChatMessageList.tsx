@@ -114,7 +114,7 @@ export function ChatMessageList({ messages, isTyping, onSendExample }: ChatMessa
     }
 
     return (
-        <div className="flex-1 overflow-y-auto">
+        <div className="h-full">
             <div className="max-w-3xl mx-auto py-6 px-4 sm:px-6">
                 {messages.map((message) => (
                     <ChatMessageBubble key={message.id} message={message} />
