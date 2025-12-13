@@ -35,7 +35,9 @@ body {
     line-height: 1.6;
 }
 
-code, pre, .font-mono {
+code,
+pre,
+.font-mono {
     font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -44,7 +46,8 @@ code, pre, .font-mono {
     outline-offset: 2px;
 }
 
-a, button {
+a,
+button {
     transition: all 0.15s ease;
 }
 
