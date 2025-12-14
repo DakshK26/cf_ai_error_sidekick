@@ -57,13 +57,26 @@ export default {
 My wrangler.toml has the KV namespace but it's not working. What's wrong and how do I fix it?`
     },
     {
-        label: "Stream response",
-        prompt: `How do I stream a response from my Cloudflare Worker? I want to use Server-Sent Events to stream data to the client.
+        label: "Worker timeout error",
+        prompt: `My Cloudflare Worker is timing out with this error:
 
-Show me a complete example with:
-1. The Worker code that streams
-2. How to properly format SSE messages
-3. Client-side code to consume the stream`
+Error 1102: Worker exceeded CPU time limit.
+
+Here's my code:
+export default {
+  async fetch(request, env) {
+    const data = await env.DB.prepare("SELECT * FROM users").all();
+    
+    // Process each user
+    for (const user of data.results) {
+      await processUser(user);
+    }
+    
+    return new Response(JSON.stringify(data.results));
+  }
+};
+
+Why is this timing out and how can I fix it?`
     }
 ];
 

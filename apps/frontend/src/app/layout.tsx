@@ -5,6 +5,9 @@ export const metadata: Metadata = {
     title: "Error Sidekick",
     description: "AI debugging assistant for Cloudflare Workers. Paste an error, get an explanation.",
     authors: [{ name: "Daksh Khanna", url: "https://github.com/DakshK26" }],
+    icons: {
+        icon: '/icon.svg',
+    },
 };
 
 export const viewport: Viewport = {
