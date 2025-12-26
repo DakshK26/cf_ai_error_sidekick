@@ -10,22 +10,22 @@
     --bg-secondary: #111113;
     --bg-tertiary: #1a1a1e;
     --bg-card: #0f0f11;
-    
+
     /* Text colors */
     --text-primary: #f5f5f5;
     --text-secondary: #a8a8a8;
     --text-muted: #5a5a5a;
-    
+
     /* Accent - vibrant orange */
     --accent: #ff6b35;
     --accent-light: #ff8c5a;
     --accent-glow: rgba(255, 107, 53, 0.4);
     --accent-subtle: rgba(255, 107, 53, 0.1);
-    
+
     /* Borders */
     --border: #1f1f23;
     --border-hover: #2a2a30;
-    
+
     /* Status */
     --success: #22c55e;
     --warning: #f59e0b;
@@ -59,7 +59,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: 
+    background-image:
         linear-gradient(rgba(255, 107, 53, 0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 107, 53, 0.02) 1px, transparent 1px);
     background-size: 60px 60px;
@@ -122,10 +122,21 @@ button {
 }
 
 /* Animation delays */
-.animation-delay-100 { animation-delay: 100ms; }
-.animation-delay-200 { animation-delay: 200ms; }
-.animation-delay-300 { animation-delay: 300ms; }
-.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-100 {
+    animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+    animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+    animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+    animation-delay: 400ms;
+}
 
 /* Glow effects */
 .glow-orange {
@@ -158,6 +169,7 @@ button {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -170,8 +182,15 @@ button {
 
 /* Robot float animation */
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .animate-float {
@@ -180,11 +199,14 @@ button {
 
 /* Pulse glow for status indicators */
 @keyframes pulseGlow {
-    0%, 100% { 
+
+    0%,
+    100% {
         box-shadow: 0 0 0 0 var(--accent-glow);
         opacity: 1;
     }
-    50% { 
+
+    50% {
         box-shadow: 0 0 10px 3px var(--accent-glow);
         opacity: 0.8;
     }
@@ -196,8 +218,16 @@ button {
 
 /* Typing cursor blink */
 @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
 }
 
 .animate-blink {

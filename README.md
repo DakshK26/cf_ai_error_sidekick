@@ -1,6 +1,7 @@
+
 # cf_ai_error_sidekick
 
-> **AI-powered error analysis assistant running entirely on Cloudflare's edge network**
+> **AI-powered error analysis assistant running on Cloudflare Workers with OpenAI-powered analysis**
 
 A production-ready full-stack application that analyzes error logs and technical issues using retrieval-augmented generation (RAG), WebAssembly-accelerated parsing, and streaming LLM responses: all deployed on Cloudflare's global edge infrastructure.
 
@@ -59,8 +60,8 @@ This project demonstrates modern edge-native architecture by building an intelli
 │                               │                                 │
 │                               ▼                                 │
 │   ┌─────────────────────────────────────────────────────────┐   │
-│   │              Workers AI (Llama 3.3 70B)                 │   │
-│   │            • Token-by-token streaming                   │   │
+│   │                     OpenAI API (GPT 4.1)                │   │
+│   │            • Streaming chat completions                 │   │
 │   │            • RAG-augmented prompts                      │   │
 │   └─────────────────────────┬───────────────────────────────┘   │
 │                             │                                   │
@@ -83,7 +84,7 @@ This project demonstrates modern edge-native architecture by building an intelli
 - **Agent System**: Cloudflare Durable Objects (`@cloudflare/agents` SDK)
 - **Database**: Cloudflare D1 (distributed SQLite)
 - **Vector DB**: Cloudflare Vectorize (semantic search)
-- **AI**: Cloudflare Workers AI (Llama 3.3 70B Instruct, BGE embeddings)
+- **AI**: OpenAI API (GPT for analysis + Embeddings API for retrieval)
 - **RAG Framework**: LangChain JS (Document format, PromptTemplate patterns)
 - **WASM**: Rust compiled to WebAssembly (`wasm-bindgen`)
 
@@ -159,7 +160,7 @@ This project was built in **10 focused phases** over 3 days:
 | Phase | Objective | Key Deliverables |
 |-------|-----------|------------------|
 | **Phase 0** | Project Bootstrap | Monorepo structure, TypeScript configs, pnpm workspaces |
-| **Phase 1** | Cloudflare Setup | Provision KV, D1, Vectorize, Workers AI; configure `wrangler.toml` |
+| **Phase 1** | Cloudflare Setup | Provision KV, D1, Vectorize; configure `wrangler.toml` |
 | **Phase 2** | Worker Routing | Hono router, health checks, placeholder endpoints |
 | **Phase 3** | Database Layer | D1 schema, SessionRepository, message persistence |
 | **Phase 3.5** | Agent Integration | ErrorAgent Durable Object, WebSocket handling, state management |
@@ -192,7 +193,8 @@ This project was built in **10 focused phases** over 3 days:
 
 - **Node.js** >= 20.x
 - **pnpm** (`npm install -g pnpm`)
-- **Cloudflare Account** (Workers Paid plan for D1, Vectorize, Workers AI)
+- **Cloudflare Account** (Workers Paid plan for D1, Vectorize)
+- **OpenAI API Key**
 - **Wrangler CLI** (`npm install -g wrangler`)
 
 ### Quick Start (Deployed Version)
@@ -224,7 +226,7 @@ wrangler d1 create cf_ai_error_sidekick_db
 wrangler kv:namespace create KV_STORE
 
 # Create Vectorize index
-wrangler vectorize create error-index --dimensions=768 --metric=cosine
+wrangler vectorize create error-index --dimensions=1536 --metric=cosine
 ```
 
 #### 3. Update Configuration
@@ -245,6 +247,7 @@ binding = "VECTOR_DB"
 index_name = "error-index"
 ```
 
+
 #### 4. Initialize Database Schema
 
 ```bash
@@ -252,7 +255,14 @@ cd apps/worker
 wrangler d1 execute cf_ai_error_sidekick_db --file=./schema.sql
 ```
 
-#### 5. Deploy Worker
+#### 5. Set OpenAI API key (stored as a Worker secret)
+
+```bash
+cd apps/worker
+wrangler secret put OPENAI_API_KEY
+```
+
+#### 6. Deploy Worker
 
 ```bash
 cd apps/worker
@@ -361,7 +371,7 @@ cf_ai_error_sidekick/
 │   │   ├── src/
 │   │   │   ├── index.ts        # Entry point, routing
 │   │   │   ├── agent.ts        # ErrorAgent Durable Object
-│   │   │   ├── ai.ts           # Workers AI utilities
+│   │   │   ├── ai.ts           # OpenAI API utilities
 │   │   │   ├── vectorStore.ts  # Vectorize operations
 │   │   │   ├── db.ts           # D1 session repository
 │   │   │   └── logParser.ts    # WASM integration
@@ -408,15 +418,15 @@ Log parsing with regex is CPU-intensive. By compiling Rust to WebAssembly:
 ### 3. **RAG Pipeline at the Edge**
 The retrieval-augmented generation flow:
 1. User sends error message
-2. Message → BGE embedding model → vector
+2. Message → OpenAI Embeddings API → vector
 3. Query Vectorize for top 3 similar docs
 4. Inject retrieved docs into LLM prompt
-5. Stream Llama 3.3 response token-by-token
+5. Stream GPT response token-by-token
 
 This ensures responses are grounded in uploaded documentation rather than relying solely on LLM knowledge.
 
 ### 4. **SSE Streaming Parser**
-Workers AI returns streaming responses in Server-Sent Events format. The custom SSE parser:
+OpenAI returns streaming responses in Server-Sent Events format. The custom SSE parser:
 - Buffers incomplete chunks across stream reads
 - Parses `data:` lines and extracts JSON
 - Handles `[DONE]` markers gracefully
