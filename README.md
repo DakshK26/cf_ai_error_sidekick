@@ -1,5 +1,5 @@
 
-# cf_ai_error_sidekick
+# Incident Sidekick
 
 > **AI-powered error analysis assistant running on Cloudflare Workers with OpenAI-powered analysis**
 
