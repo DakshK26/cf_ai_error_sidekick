@@ -1,195 +1,184 @@
+import { Document } from "@langchain/core/documents";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { BaseRetriever, type BaseRetrieverInput } from "@langchain/core/retrievers";
+import { RunnableSequence } from "@langchain/core/runnables";
+
 import type { Env } from "./types";
 import { querySimilar } from "./vectorStore";
 import { chatWithLlmStream } from "./ai";
 
-// Use dynamic import for LangChain to handle potential compatibility issues
-type LangChainDocument = {
-    pageContent: string;
-    metadata: Record<string, unknown>;
-};
-
 /**
- * Custom retriever that wraps Cloudflare Vectorize
- * Returns documents in a LangChain-compatible format
+ * Custom retriever wrapping Cloudflare Vectorize.
+ * Extends LangChain's BaseRetriever so it plugs into any chain or runnable.
  */
-async function vectorizeRetriever(
-    env: Env,
-    query: string,
-    k = 4
-): Promise<LangChainDocument[]> {
-    try {
-        const chunks = await querySimilar(env, query, k);
+class VectorizeRetriever extends BaseRetriever {
+    lc_namespace = ["cf_ai_error_sidekick", "retrievers"];
 
-        return chunks.map((c) => ({
-            pageContent: c.text,
-            metadata: {
-                id: c.id,
-                source: c.source ?? "unknown",
-                score: c.score,
-            },
-        }));
-    } catch (error) {
-        // If Vectorize/embedding fails, return empty array (graceful degradation)
-        console.warn("[LangChain RAG] Vectorize retrieval failed, continuing without context:", error);
-        return [];
+    private env: Env;
+    private k: number;
+
+    constructor(env: Env, k = 4, fields?: BaseRetrieverInput) {
+        super(fields ?? {});
+        this.env = env;
+        this.k = k;
+    }
+
+    async _getRelevantDocuments(query: string): Promise<Document[]> {
+        try {
+            const chunks = await querySimilar(this.env, query, this.k);
+            return chunks.map(
+                (c) =>
+                    new Document({
+                        pageContent: c.text,
+                        metadata: {
+                            id: c.id,
+                            source: c.source ?? "unknown",
+                            score: c.score,
+                        },
+                    })
+            );
+        } catch (error) {
+            console.warn(
+                "[LangChain RAG] Vectorize retrieval failed, continuing without context:",
+                error
+            );
+            return [];
+        }
     }
 }
 
-/**
- * Format retrieved documents into a context string for the prompt
- */
-function formatDocsAsContext(docs: LangChainDocument[]): string {
+function formatDocs(docs: Document[]): string {
     if (docs.length === 0) {
         return "No relevant context found in knowledge base.";
     }
-
     return docs
         .map(
             (d, i) =>
-                `#${i + 1} (source: ${d.metadata?.source ?? "unknown"}, score: ${typeof d.metadata?.score === 'number' ? d.metadata.score.toFixed(3) : "N/A"})\n${d.pageContent}`
+                `#${i + 1} (source: ${d.metadata?.source ?? "unknown"}, score: ${typeof d.metadata?.score === "number" ? d.metadata.score.toFixed(3) : "N/A"})\n${d.pageContent}`
         )
         .join("\n\n");
 }
 
+const LOG_ANALYSIS_PROMPT = ChatPromptTemplate.fromMessages([
+    [
+        "system",
+        "You are an expert debugging assistant that explains logs, traces, and errors to help developers debug issues.",
+    ],
+    [
+        "human",
+        `Given the following log or error trace, explain what is going on and propose next steps.
+Be clear, concise, and actionable in your response.
+
+=== Context from Knowledge Base ===
+{context}
+
+=== Log/Error to Analyze ===
+{log}
+
+=== Your Analysis ===
+Provide:
+1. What the error/log means
+2. Likely root cause
+3. Suggested next steps to debug or fix`,
+    ],
+]);
+
 /**
- * LangChain-style prompt template for log analysis
- * This mimics LangChain's PromptTemplate.format() behavior
+ * Build retrieval chain: query → VectorizeRetriever → formatDocs → context string
  */
-function formatLogAnalysisPrompt(context: string, log: string): string {
-    return [
-        "You are an expert debugging assistant helping developers understand logs and errors.",
-        "",
-        "Given the following log or error trace, explain what is going on and propose next steps.",
-        "Be clear, concise, and actionable in your response.",
-        "",
-        "=== Context from Knowledge Base ===",
-        context,
-        "",
-        "=== Log/Error to Analyze ===",
-        log,
-        "",
-        "=== Your Analysis ===",
-        "Provide:",
-        "1. What the error/log means",
-        "2. Likely root cause",
-        "3. Suggested next steps to debug or fix",
-    ].join("\n");
+function buildRetrievalChain(env: Env) {
+    const retriever = new VectorizeRetriever(env);
+
+    return RunnableSequence.from([retriever, formatDocs]);
 }
 
 /**
- * Main LangChain-style RAG function for log/error analysis
+ * Convert LangChain BaseMessages to the {role, content} format Workers AI expects.
+ */
+function toWorkerMessages(
+    msgs: Awaited<ReturnType<typeof LOG_ANALYSIS_PROMPT.formatMessages>>
+) {
+    return msgs.map((m) => ({
+        role: (m._getType() === "system" ? "system" : "user") as
+            | "system"
+            | "user"
+            | "assistant",
+        content:
+            typeof m.content === "string"
+                ? m.content
+                : JSON.stringify(m.content),
+    }));
+}
+
+/**
+ * Main LangChain RAG pipeline for log/error analysis.
  *
- * This implements a RAG pipeline pattern similar to LangChain:
- * 1. Retriever: Cloudflare Vectorize returns LangChain-compatible Documents
- * 2. Prompt Template: Formats context + query into structured prompt
- * 3. LLM: Workers AI generates the response
- *
- * @param env - Cloudflare Worker environment bindings
- * @param logText - The log or error text to analyze
- * @returns AI-generated explanation and next steps
+ * Chain: VectorizeRetriever → formatDocs → ChatPromptTemplate → Workers AI LLM
  */
 export async function runLangChainRagOnLog(
     env: Env,
     logText: string
 ): Promise<string> {
-    console.log("[LangChain RAG] Step 1: Retrieving from Vectorize...");
+    console.log("[LangChain RAG] Running retrieval chain...");
+    const context = await buildRetrievalChain(env).invoke(logText);
 
-    // Step 1: Retrieve relevant documents from Vectorize (LangChain Retriever pattern)
-    const docs = await vectorizeRetriever(env, logText, 4);
-    console.log("[LangChain RAG] Retrieved", docs.length, "documents");
+    console.log("[LangChain RAG] Formatting prompt via ChatPromptTemplate...");
+    const messages = await LOG_ANALYSIS_PROMPT.formatMessages({
+        context,
+        log: logText,
+    });
 
-    const context = formatDocsAsContext(docs);
-
-    // Step 2: Format the prompt (LangChain PromptTemplate pattern)
-    console.log("[LangChain RAG] Step 2: Formatting prompt...");
-    const formattedPrompt = formatLogAnalysisPrompt(context, logText);
-
-    // Step 3: Call the LLM (LangChain LLM pattern)
-    console.log("[LangChain RAG] Step 3: Calling LLM...");
+    console.log("[LangChain RAG] Streaming LLM response...");
     let output = "";
-    await chatWithLlmStream(
-        env,
-        [
-            {
-                role: "system",
-                content:
-                    "You are an AI assistant that explains logs, traces, and errors to help developers debug issues.",
-            },
-            { role: "user", content: formattedPrompt },
-        ],
-        (token) => {
-            output += token;
-        }
-    );
+    await chatWithLlmStream(env, toWorkerMessages(messages), (token) => {
+        output += token;
+    });
 
-    console.log("[LangChain RAG] LLM response complete, length:", output.length);
+    console.log("[LangChain RAG] Complete, length:", output.length);
     return output;
 }
 
 /**
- * Streaming version of LangChain RAG for log analysis
- * Allows token-by-token streaming while using the LangChain RAG pattern
- *
- * @param env - Cloudflare Worker environment bindings
- * @param logText - The log or error text to analyze
- * @param onToken - Callback for each streamed token
- * @returns Complete response after streaming
+ * Streaming variant — retrieval + prompt formatting use LangChain;
+ * tokens stream back via onToken callback.
  */
 export async function runLangChainRagOnLogStreaming(
     env: Env,
     logText: string,
     onToken: (token: string) => void
 ): Promise<string> {
-    // Step 1: Retrieve relevant documents from Vectorize (LangChain Retriever pattern)
-    const docs = await vectorizeRetriever(env, logText, 4);
-    const context = formatDocsAsContext(docs);
+    const context = await buildRetrievalChain(env).invoke(logText);
 
-    // Step 2: Format the prompt (LangChain PromptTemplate pattern)
-    const formattedPrompt = formatLogAnalysisPrompt(context, logText);
+    const messages = await LOG_ANALYSIS_PROMPT.formatMessages({
+        context,
+        log: logText,
+    });
 
-    // Step 3: Stream LLM response
     let output = "";
-    await chatWithLlmStream(
-        env,
-        [
-            {
-                role: "system",
-                content:
-                    "You are an AI assistant that explains logs, traces, and errors to help developers debug issues.",
-            },
-            { role: "user", content: formattedPrompt },
-        ],
-        (token) => {
-            output += token;
-            onToken(token);
-        }
-    );
+    await chatWithLlmStream(env, toWorkerMessages(messages), (token) => {
+        output += token;
+        onToken(token);
+    });
 
     return output;
 }
 
-/**
- * Detect if a message looks like a log or error trace
- * Used to decide whether to route through LangChain RAG path
- */
+/** Detect if a message looks like a log or error trace. */
 export function looksLikeLog(content: string): boolean {
-    // Check for common log patterns
     const logIndicators = [
         /\bERROR\b/i,
         /\bWARN(ING)?\b/i,
         /\bException\b/i,
         /\bStackTrace\b/i,
         /\bFailed\b/i,
-        /\bat\s+[\w.]+\(.*:\d+\)/i, // Stack trace pattern: at Module.func(file.ts:123)
-        /\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/, // ISO timestamp
-        /^\[\d{4}/, // [2025-... style timestamps
+        /\bat\s+[\w.]+\(.*:\d+\)/i,
+        /\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/,
+        /^\[\d{4}/,
         /\b(FATAL|CRITICAL|DEBUG|INFO|TRACE)\b/i,
     ];
 
-    const hasLogIndicator = logIndicators.some((pattern) =>
-        pattern.test(content)
+    return (
+        logIndicators.some((pattern) => pattern.test(content)) ||
+        content.split("\n").length > 3
     );
-    const isMultiLine = content.split("\n").length > 3;
-
-    return hasLogIndicator || isMultiLine;
 }
