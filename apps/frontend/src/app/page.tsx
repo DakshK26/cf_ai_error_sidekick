@@ -74,7 +74,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-accent animate-pulse-glow" />
                             <h1 className="text-base font-semibold text-white tracking-tight">
-                                Error Sidekick
+                                Incident Sidekick
                             </h1>
                         </div>
                         <button
@@ -162,7 +162,7 @@ export default function HomePage() {
                     </button>
                     <div className="flex items-center gap-2">
                         <RobotMascot size="sm" className="!w-8 !h-10" />
-                        <span className="text-sm text-white font-medium">Error Sidekick</span>
+                        <span className="text-sm text-white font-medium">Incident Sidekick</span>
                         {isConnecting && <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
                         {isConnected && !error && <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse-glow" />}
                         {error && <div className="w-2 h-2 rounded-full bg-red-400" />}
